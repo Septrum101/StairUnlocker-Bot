@@ -1,0 +1,6 @@
+converterAPI: https://api.dler.io
+maxConn: 256
+maxOnline: 10
+log_level: info
+telegram:
+  telegramToken:
