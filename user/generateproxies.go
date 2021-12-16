@@ -35,7 +35,7 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	baseUrl.RawQuery = params.Encode()
 	reqs, err := http.Get(baseUrl.String())
 	if err != nil {
-		log.Errorln(err.Error())
+		return
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
