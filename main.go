@@ -49,7 +49,6 @@ func main() {
 	for u := range ch {
 		go func(u *user.User) {
 			u.URLCheck(SuConfig.ConverterAPI, SuConfig.MaxConn)
-			//userMap[u.ID] = *u
 		}(u)
 	}
 }

@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 )
 
 func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmarshalProxies *config.RawConfig, err error) {
@@ -25,7 +24,7 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 	return proxies, unmarshalProxies, err
 }
 
-func (u *User) convertAPI(apiURL string) (p []byte, err error) {
+func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	baseUrl, err := url.Parse(apiURL)
 	baseUrl.Path += "sub"
 	params := url.Values{}
@@ -44,10 +43,10 @@ func (u *User) convertAPI(apiURL string) (p []byte, err error) {
 			return
 		}
 	}(reqs.Body)
-	p, _ = ioutil.ReadAll(reqs.Body)
-	if strings.Contains(string(p), "The following link doesn't contain any valid node info") {
-		log.Errorln("The following link doesn't contain any valid node info.")
-		err = fmt.Errorf("invalid link")
+	re, _ = ioutil.ReadAll(reqs.Body)
+	if reqs.StatusCode != 200 {
+		log.Errorln(string(re))
+		err = fmt.Errorf(string(re))
 		return nil, err
 	}
 	return

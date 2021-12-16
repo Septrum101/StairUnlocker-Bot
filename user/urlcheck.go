@@ -40,6 +40,7 @@ func (u *User) URLCheck(apiURL string, maxConn int) {
 	}
 	start := time.Now()
 	netflixList, latency := utils.BatchCheck(proxiesList, connNum)
+	//proxiesTest(netflixList,u)
 	report := fmt.Sprintf("Total %d nodes, %d unlock nodes.\nElapsed time: %s", len(proxiesList), len(netflixList), time.Now().Sub(start).Round(time.Millisecond))
 	log.Warnln(report)
 	telegramReport := fmt.Sprintf("%s\nTimestamp: %s\n%s\n%s", report, time.Now().Round(time.Millisecond), strings.Repeat("-", 35), strings.Join(latency, "\n"))

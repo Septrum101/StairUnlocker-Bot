@@ -21,26 +21,34 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 	}
 	log.Infoln("Authorized on account %s", bot.Self.UserName)
 
-	u := tg.NewUpdate(0)
-	u.Timeout = 60
+	updateCfg := tg.NewUpdate(0)
+	updateCfg.Timeout = 60
 
-	updates := bot.GetUpdatesChan(u)
+	updates := bot.GetUpdatesChan(updateCfg)
 	for update := range updates {
-		usr := user.User{
-			ID:  update.Message.Chat.ID,
-			Bot: bot,
-		}
-
 		if update.Message == nil {
 			continue
+		}
+
+		usr, ok := (*userMap)[update.Message.Chat.ID]
+		if ok {
+			usr.Bot = bot
+		} else {
+			usr = &user.User{
+				ID:  update.Message.Chat.ID,
+				Bot: bot,
+			}
 		}
 		// 选择telegram命令
 		switch {
 		case update.Message.Text == "/start":
-			_ = usr.Send("/url Test subURL, Support vmess/ss/ssr/http/https.\n/stat Show last status.")
+			_ = usr.Send(`
+/url - Test SubURL, Support http/https/vmess/ss/ssr/trojan.
+/stat - Show the last status.
+`)
 
 		case update.Message.Text == "/stat":
-			if (*userMap)[usr.ID].Data.CheckInfo == "" {
+			if usr.Data.CheckInfo == "" {
 				_ = usr.Send("Cannot find the status information. Please use /url command first.")
 			} else {
 				_ = usr.Send((*userMap)[usr.ID].Data.CheckInfo)
@@ -60,24 +68,18 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 							subURL.Fragment = strings.ReplaceAll(subURL.Fragment, "\n", "|")
 						}
 					}
-					if exUser, ok := (*userMap)[update.Message.Chat.ID]; ok {
-						// 用户测试间隔
-						internal := time.Duration(cfg.Internal)
-						if time.Now().Sub(time.Unix(exUser.Data.LastCheck, 0)) < internal*time.Minute {
-							remainTime := internal*time.Minute - time.Now().Sub(time.Unix(exUser.Data.LastCheck, 0))
-							_ = usr.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
-						} else {
-							exUser.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
-							(*userMap)[update.Message.Chat.ID] = exUser
-							_ = usr.Send("Checking nodes status...")
-							*buf <- exUser
-						}
+					// 用户测试间隔
+					internal := time.Duration(cfg.Internal)
+					if time.Now().Sub(time.Unix(usr.Data.LastCheck, 0)) < internal*time.Minute {
+						remainTime := internal*time.Minute - time.Now().Sub(time.Unix(usr.Data.LastCheck, 0))
+						_ = usr.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
 					} else {
 						usr.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
-						(*userMap)[update.Message.Chat.ID] = &usr
+						(*userMap)[update.Message.Chat.ID] = usr
 						_ = usr.Send("Checking nodes status...")
-						*buf <- &usr
+						*buf <- usr
 					}
+
 				}
 			}
 		default:
