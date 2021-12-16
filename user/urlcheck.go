@@ -42,9 +42,9 @@ func (u *User) URLCheck(apiURL string, maxConn int) {
 	netflixList, latency := utils.BatchCheck(proxiesList, connNum)
 	report := fmt.Sprintf("Total %d nodes, %d unlock nodes.\nElapsed time: %s", len(proxiesList), len(netflixList), time.Now().Sub(start).Round(time.Millisecond))
 	log.Warnln(report)
-	telegramReport := fmt.Sprintf("%s\nTimestamp: %s", report, time.Now().Round(time.Millisecond))
+	telegramReport := fmt.Sprintf("%s\nTimestamp: %s\n%s\n%s", report, time.Now().Round(time.Millisecond), strings.Repeat("-", 35), strings.Join(latency, "\n"))
 	// todo upload file
 	_, _ = yaml.Marshal(NetflixFilter(netflixList, unmarshalProxies))
 	u.Data.CheckInfo = telegramReport
-	_ = u.Send(fmt.Sprintf("%s\n%s\n%s", telegramReport, strings.Repeat("-", 35), strings.Join(latency, "\n")))
+	_ = u.Send(telegramReport)
 }

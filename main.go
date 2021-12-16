@@ -43,10 +43,13 @@ func main() {
 	fmt.Printf("Log Level: %s\n", SuConfig.LogLevel)
 
 	ch := make(chan *user.User, SuConfig.MaxOnline)
-	userMap := make(map[int64]user.User)
+	userMap := make(map[int64]*user.User)
 	go func() { _ = telegram.TGUpdates(&ch, &userMap, SuConfig) }()
 
 	for u := range ch {
-		go func(u *user.User) { u.URLCheck(SuConfig.ConverterAPI, SuConfig.MaxConn) }(u)
+		go func(u *user.User) {
+			u.URLCheck(SuConfig.ConverterAPI, SuConfig.MaxConn)
+			//userMap[u.ID] = *u
+		}(u)
 	}
 }

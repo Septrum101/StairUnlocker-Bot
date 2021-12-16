@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func TGUpdates(buf *chan *user.User, userMap *map[int64]user.User, cfg *config.SuConfig) (err error) {
+func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.SuConfig) (err error) {
 	bot, err := tg.NewBotAPI(cfg.TelegramToken)
 	if err != nil {
 		panic(err)
@@ -40,10 +40,10 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]user.User, cfg *config.S
 			_ = usr.Send("/url Test subURL, Support vmess/ss/ssr/http/https.\n/stat Show last status.")
 
 		case update.Message.Text == "/stat":
-			if usr.Data.CheckInfo == "" {
+			if (*userMap)[usr.ID].Data.CheckInfo == "" {
 				_ = usr.Send("Cannot find the status information. Please use /url command first.")
 			} else {
-				_ = usr.Send(usr.Data.CheckInfo)
+				_ = usr.Send((*userMap)[usr.ID].Data.CheckInfo)
 			}
 
 		case strings.HasPrefix(update.Message.Text, "/url"):
@@ -70,11 +70,11 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]user.User, cfg *config.S
 							exUser.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
 							(*userMap)[update.Message.Chat.ID] = exUser
 							_ = usr.Send("Checking nodes status...")
-							*buf <- &exUser
+							*buf <- exUser
 						}
 					} else {
 						usr.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
-						(*userMap)[update.Message.Chat.ID] = usr
+						(*userMap)[update.Message.Chat.ID] = &usr
 						_ = usr.Send("Checking nodes status...")
 						*buf <- &usr
 					}
