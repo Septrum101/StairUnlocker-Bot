@@ -21,7 +21,7 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 	}
 	unmarshalProxies, _ = config.UnmarshalRawConfig(pList)
 	proxies, err = u.parseProxies(unmarshalProxies)
-	return proxies, unmarshalProxies, err
+	return
 }
 
 func (u *User) convertAPI(apiURL string) (re []byte, err error) {
@@ -47,7 +47,7 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	if reqs.StatusCode != 200 {
 		log.Errorln(string(re))
 		err = fmt.Errorf(string(re))
-		return nil, err
+		return
 	}
 	return
 }
@@ -65,5 +65,5 @@ func (u *User) parseProxies(cfg *config.RawConfig) (proxies map[string]C.Proxy, 
 		}
 		proxies[proxy.Name()] = proxy
 	}
-	return proxies, err
+	return
 }
