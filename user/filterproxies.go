@@ -1,6 +1,8 @@
-package config
+package user
 
-func NETFLIXFilter(netflixList []string, cfg *RawConfig) (netflixCfg RawConfig) {
+import "github.com/thank243/StairUnlocker-Bot/config"
+
+func NetflixFilter(netflixList []string, cfg *config.RawConfig) (netflixCfg config.RawConfig) {
 	for idx := range netflixList {
 		for i := range cfg.Proxy {
 			if netflixList[idx] == cfg.Proxy[i]["name"] {
