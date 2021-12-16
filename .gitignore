@@ -97,3 +97,5 @@ gen
 # vendor/
 
 config.yaml
+StairUnlocker-Bot
+test.go
