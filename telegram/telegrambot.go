@@ -55,19 +55,14 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 			}
 
 		case strings.HasPrefix(update.Message.Text, "/url"):
+			var subURL *url.URL
 			if len(*buf) > cfg.MaxOnline {
 				_ = usr.Send(fmt.Sprintf("Too many connections, Please try again later."))
 			} else {
-				subURL, _ := url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
-				if subURL.Scheme == "" {
+				subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
+				if err != nil {
 					_ = usr.Send("Invalid URL")
 				} else {
-					schemeList := []string{"ss", "ssr", "trojan", "vemss"}
-					for i := range schemeList {
-						if subURL.Scheme == schemeList[i] {
-							subURL.Fragment = strings.ReplaceAll(subURL.Fragment, "\n", "|")
-						}
-					}
 					// 用户测试间隔
 					internal := time.Duration(cfg.Internal)
 					if time.Now().Sub(time.Unix(usr.Data.LastCheck, 0)) < internal*time.Minute {
@@ -79,13 +74,12 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 						_ = usr.Send("Checking nodes status...")
 						*buf <- usr
 					}
-
 				}
 			}
 		default:
 			_ = usr.Send("Invalid command")
 		}
-		log.Debugln("TGUpdates Bot: [ID: %d], Text: %s", update.Message.From.ID, update.Message.Text)
+		log.Debugln("Telegram Bot: [ID: %d], Text: %s", update.Message.From.ID, update.Message.Text)
 	}
 	return
 }
