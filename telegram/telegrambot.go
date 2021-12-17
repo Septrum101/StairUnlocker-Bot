@@ -60,7 +60,7 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 				_ = usr.Send(fmt.Sprintf("Too many connections, Please try again later."))
 			} else {
 				subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
-				if err != nil {
+				if err != nil && subURL.Scheme == "" {
 					_ = usr.Send("Invalid URL")
 				} else {
 					// 用户测试间隔
