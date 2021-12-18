@@ -12,9 +12,10 @@ import (
 )
 
 type User struct {
-	ID   int64
-	Data Data
-	Bot  *tgBot.BotAPI
+	ID      int64
+	Data    Data
+	Bot     *tgBot.BotAPI
+	IsCheck bool
 }
 
 type Data struct {
@@ -25,6 +26,7 @@ type Data struct {
 
 func (u *User) URLCheck(apiURL string, maxConn int) {
 	var proxiesList []C.Proxy
+	u.IsCheck = true
 	proxies, unmarshalProxies, err := u.generateProxies(apiURL)
 	if err != nil {
 		_ = u.Send(err.Error())
@@ -41,11 +43,12 @@ func (u *User) URLCheck(apiURL string, maxConn int) {
 	start := time.Now()
 	netflixList, latency := utils.BatchCheck(proxiesList, connNum)
 	//proxiesTest(netflixList,u)
-	report := fmt.Sprintf("Total %d nodes, %d unlock nodes.\nElapsed time: %s", len(proxiesList), len(netflixList), time.Now().Sub(start).Round(time.Millisecond))
+	report := fmt.Sprintf("Total %d nodes, %d unlock nodes.\nElapsed time: %s", len(proxiesList), len(netflixList), time.Since(start).Round(time.Millisecond))
 	log.Warnln(report)
 	telegramReport := fmt.Sprintf("%s\nTimestamp: %s\n%s\n%s", report, time.Now().Round(time.Millisecond), strings.Repeat("-", 35), strings.Join(latency, "\n"))
 	// todo upload file
 	_, _ = yaml.Marshal(NetflixFilter(netflixList, unmarshalProxies))
 	u.Data.CheckInfo = telegramReport
 	_ = u.Send(telegramReport)
+	u.IsCheck = false
 }
