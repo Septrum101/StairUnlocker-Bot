@@ -1,32 +1,28 @@
 package config
 
 import (
-	"github.com/Dreamacro/clash/log"
+	"flag"
+	"fmt"
+	C "github.com/Dreamacro/clash/constant"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
+	"runtime"
 )
 
-type RawConfig struct {
-	Proxy []map[string]interface{} `yaml:"proxies,flow"`
-}
+func init() {
+	fmt.Printf(fmt.Sprintf("StairUnlock-Bot %s %s %s with %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, runtime.Version(), C.BuildTime))
+	flag.BoolVar(&Help, "h", false, "this help")
+	flag.BoolVar(&Version, "v", false, "show current version of StairUnlock")
+	flag.StringVar(&configPath, "f", "", "specify configuration file")
+	flag.Parse()
 
-type SuConfig struct {
-	ConverterAPI  string       `yaml:"converterAPI"`
-	MaxConn       int          `yaml:"maxConn"`
-	MaxOnline     int          `yaml:"maxOnline"`
-	LogLevel      log.LogLevel `yaml:"log_level"`
-	Internal      int          `yaml:"internal"`
-	TelegramToken string       `yaml:"telegramToken,omitempty"`
-}
-
-func Init(cfgPath *string) (cfg *SuConfig) {
 	//initial config.yaml
 	var (
 		buf []byte
 	)
-	if *cfgPath != "" {
-		buf, _ = ioutil.ReadFile(*cfgPath)
+	if configPath != "" {
+		buf, _ = ioutil.ReadFile(configPath)
 	} else {
 		_, err := os.Stat("config.yaml")
 		if err != nil {
@@ -35,8 +31,7 @@ func Init(cfgPath *string) (cfg *SuConfig) {
 		}
 		buf, _ = ioutil.ReadFile("config.yaml")
 	}
-	_ = yaml.Unmarshal(buf, &cfg)
-	return
+	_ = yaml.Unmarshal(buf, &BotCfg)
 }
 
 func UnmarshalRawConfig(buf []byte) (*RawConfig, error) {

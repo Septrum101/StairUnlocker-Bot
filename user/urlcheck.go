@@ -4,30 +4,17 @@ import (
 	"fmt"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
-	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/thank243/StairUnlocker-Bot/config"
 	"github.com/thank243/StairUnlocker-Bot/utils"
 	"gopkg.in/yaml.v3"
 	"strings"
 	"time"
 )
 
-type User struct {
-	ID      int64
-	Data    Data
-	Bot     *tgBot.BotAPI
-	IsCheck bool
-}
-
-type Data struct {
-	LastCheck int64
-	SubURL    string
-	CheckInfo string
-}
-
-func (u *User) URLCheck(apiURL string, maxConn int) {
+func (u *User) URLCheck() {
 	var proxiesList []C.Proxy
 	u.IsCheck = true
-	proxies, unmarshalProxies, err := u.generateProxies(apiURL)
+	proxies, unmarshalProxies, err := u.generateProxies(config.BotCfg.ConverterAPI)
 	if err != nil {
 		_ = u.Send(err.Error())
 		return
@@ -36,7 +23,7 @@ func (u *User) URLCheck(apiURL string, maxConn int) {
 		proxiesList = append(proxiesList, v)
 	}
 	//同时连接数
-	connNum := maxConn
+	connNum := config.BotCfg.MaxConn
 	if i := len(proxiesList); i < connNum {
 		connNum = i
 	}

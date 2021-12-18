@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.SuConfig) (err error) {
-	bot, err := tg.NewBotAPI(cfg.TelegramToken)
+func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
+	bot, err := tg.NewBotAPI(config.BotCfg.TelegramToken)
 	if err != nil {
 		panic(err)
 	}
-	if cfg.LogLevel == 0 {
+	if config.BotCfg.LogLevel == 0 {
 		bot.Debug = true
 	}
 	log.Infoln("Authorized on account %s", bot.Self.UserName)
@@ -53,7 +53,7 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 			}
 
 		case strings.HasPrefix(update.Message.Text, "/url"):
-			if len(*buf) > cfg.MaxOnline {
+			if len(*buf) > config.BotCfg.MaxOnline {
 				_ = usr.Send("Too many connections, Please try again later.")
 				continue
 			}
@@ -67,7 +67,7 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 			subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
 			if err != nil || subURL.Scheme == "" {
 				_ = usr.Send("Invalid URL. Please inspect your subURL.")
-			} else if usr.UserOutInternal(cfg.Internal) {
+			} else if usr.UserOutInternal(config.BotCfg.Internal) {
 				// the time between previous testing.
 				usr.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
 				*buf <- usr
@@ -76,7 +76,7 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 			}
 
 		case update.Message.Text == "/retest":
-			if len(*buf) > cfg.MaxOnline {
+			if len(*buf) > config.BotCfg.MaxOnline {
 				_ = usr.Send("Too many connections, Please try again later.")
 				continue
 			}
@@ -86,7 +86,7 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 			}
 			if usr.Data.SubURL == "" {
 				_ = usr.Send("Cannot find subURL. Please use /url command first.")
-			} else if usr.UserOutInternal(cfg.Internal) {
+			} else if usr.UserOutInternal(config.BotCfg.Internal) {
 				usr.Data.LastCheck = time.Now().Unix()
 				*buf <- usr
 				(*userMap)[update.Message.Chat.ID] = usr
