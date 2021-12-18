@@ -41,6 +41,7 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 		case update.Message.Text == "/start":
 			_ = usr.Send(`
 /url subURL - Test SubURL, Support http/https/vmess/ss/ssr/trojan.
+/retest - Retest last subURL.
 /stat - Show the last checking result.
 `)
 
