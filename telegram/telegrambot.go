@@ -1,7 +1,6 @@
 package telegram
 
 import (
-	"fmt"
 	"github.com/Dreamacro/clash/log"
 	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/thank243/StairUnlocker-Bot/config"
@@ -65,19 +64,27 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 				subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
 				if err != nil || subURL.Scheme == "" {
 					_ = usr.Send("Invalid URL. Please inspect your subURL.")
-				} else {
+				} else if usr.UserOutInternal(cfg.Internal) {
 					// the time between previous testing.
-					internal := time.Duration(cfg.Internal)
-					if time.Since(time.Unix(usr.Data.LastCheck, 0)) < internal*time.Minute {
-						remainTime := internal*time.Minute - time.Since(time.Unix(usr.Data.LastCheck, 0))
-						_ = usr.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
-					} else {
-						usr.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
-						*buf <- usr
-						(*userMap)[update.Message.Chat.ID] = usr
-						_ = usr.Send("Checking nodes unlock status...")
-					}
+					usr.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
+					*buf <- usr
+					(*userMap)[update.Message.Chat.ID] = usr
+					_ = usr.Send("Checking nodes unlock status...")
 				}
+			}
+
+		case update.Message.Text == "/retest":
+			if usr.IsCheck {
+				_ = usr.Send("Duplication, Previous testing is not completed! Please try again later.")
+				continue
+			}
+			if usr.Data.SubURL == "" {
+				_ = usr.Send("Cannot find subURL. Please use /url command first.")
+			} else if usr.UserOutInternal(cfg.Internal) {
+				usr.Data.LastCheck = time.Now().Unix()
+				*buf <- usr
+				(*userMap)[update.Message.Chat.ID] = usr
+				_ = usr.Send("Checking nodes unlock status...")
 			}
 
 		default:
