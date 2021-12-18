@@ -99,3 +99,4 @@ gen
 config.yaml
 StairUnlocker-Bot
 test.go
+dist/

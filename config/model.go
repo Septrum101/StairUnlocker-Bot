@@ -14,7 +14,7 @@ type BotConfig struct {
 	MaxOnline     int          `yaml:"maxOnline"`
 	LogLevel      log.LogLevel `yaml:"log_level"`
 	Internal      int          `yaml:"internal"`
-	TelegramToken string       `yaml:"telegramToken,omitempty"`
+	TelegramToken string       `yaml:"telegramToken"`
 }
 
 var (

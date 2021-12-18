@@ -25,7 +25,7 @@ func main() {
 	ch := make(chan *user.User, config.BotCfg.MaxOnline)
 	userMap := make(map[int64]*user.User)
 	go func() {
-		err := telegram.TGUpdates(&ch, &userMap)
+		err := telegram.Updates(&ch, &userMap)
 		if err != nil {
 			log.Errorln(err.Error())
 		}

@@ -13,7 +13,6 @@ func BatchCheck(proxiesList []C.Proxy, n int) (netflixList []string, latencyList
 	b, _ := batch.New(context.Background(), batch.WithConcurrencyNum(n))
 	// counts buffer channel
 	ch := make(chan int, 16)
-	// close channel
 	defer close(ch)
 	curr, total := 0, len(proxiesList)
 	for i := range proxiesList {

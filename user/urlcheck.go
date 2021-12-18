@@ -14,11 +14,13 @@ import (
 func (u *User) URLCheck() {
 	var proxiesList []C.Proxy
 	u.IsCheck = true
+	defer func() { u.IsCheck = false }()
 	proxies, unmarshalProxies, err := u.generateProxies(config.BotCfg.ConverterAPI)
 	if err != nil {
 		_ = u.Send(err.Error())
 		return
 	}
+	_ = u.Send("Checking nodes unlock status...")
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
 	}
@@ -37,5 +39,4 @@ func (u *User) URLCheck() {
 	_, _ = yaml.Marshal(NetflixFilter(netflixList, unmarshalProxies))
 	u.Data.CheckInfo = telegramReport
 	_ = u.Send(telegramReport)
-	u.IsCheck = false
 }
