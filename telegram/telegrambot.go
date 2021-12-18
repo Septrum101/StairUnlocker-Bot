@@ -53,28 +53,33 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 			}
 
 		case strings.HasPrefix(update.Message.Text, "/url"):
+			if len(*buf) > cfg.MaxOnline {
+				_ = usr.Send("Too many connections, Please try again later.")
+				continue
+			}
 			// limited double-checking
 			if usr.IsCheck {
 				_ = usr.Send("Duplication, Previous testing is not completed! Please try again later.")
 				continue
 			}
+
 			var subURL *url.URL
-			if len(*buf) > cfg.MaxOnline {
-				_ = usr.Send("Too many connections, Please try again later.")
-			} else {
-				subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
-				if err != nil || subURL.Scheme == "" {
-					_ = usr.Send("Invalid URL. Please inspect your subURL.")
-				} else if usr.UserOutInternal(cfg.Internal) {
-					// the time between previous testing.
-					usr.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
-					*buf <- usr
-					(*userMap)[update.Message.Chat.ID] = usr
-					_ = usr.Send("Checking nodes unlock status...")
-				}
+			subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
+			if err != nil || subURL.Scheme == "" {
+				_ = usr.Send("Invalid URL. Please inspect your subURL.")
+			} else if usr.UserOutInternal(cfg.Internal) {
+				// the time between previous testing.
+				usr.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
+				*buf <- usr
+				(*userMap)[update.Message.Chat.ID] = usr
+				_ = usr.Send("Checking nodes unlock status...")
 			}
 
 		case update.Message.Text == "/retest":
+			if len(*buf) > cfg.MaxOnline {
+				_ = usr.Send("Too many connections, Please try again later.")
+				continue
+			}
 			if usr.IsCheck {
 				_ = usr.Send("Duplication, Previous testing is not completed! Please try again later.")
 				continue
