@@ -42,13 +42,19 @@ func main() {
 	log.SetLevel(SuConfig.LogLevel)
 	fmt.Printf("Log Level: %s\n", SuConfig.LogLevel)
 
+	// receive the user from telegram
 	ch := make(chan *user.User, SuConfig.MaxOnline)
 	userMap := make(map[int64]*user.User)
-	go func() { _ = telegram.TGUpdates(&ch, &userMap, SuConfig) }()
+	go func() {
+		err := telegram.TGUpdates(&ch, &userMap, SuConfig)
+		if err != nil {
+			log.Errorln(err.Error())
+		}
+	}()
 
-	for u := range ch {
+	for usr := range ch {
 		go func(u *user.User) {
 			u.URLCheck(SuConfig.ConverterAPI, SuConfig.MaxConn)
-		}(u)
+		}(usr)
 	}
 }

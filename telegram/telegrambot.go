@@ -29,22 +29,20 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 		if update.Message == nil {
 			continue
 		}
-
+		// initial User struct
 		usr, ok := (*userMap)[update.Message.Chat.ID]
-		if ok {
-			usr.Bot = bot
-		} else {
+		if !ok {
 			usr = &user.User{
 				ID:  update.Message.Chat.ID,
 				Bot: bot,
 			}
 		}
-		// 选择telegram命令
+		// select telegram cmd.
 		switch {
 		case update.Message.Text == "/start":
 			_ = usr.Send(`
-/url - Test SubURL, Support http/https/vmess/ss/ssr/trojan.
-/stat - Show the last status.
+/url subURL - Test SubURL, Support http/https/vmess/ss/ssr/trojan.
+/stat - Show the last checking result.
 `)
 
 		case update.Message.Text == "/stat":
@@ -57,25 +55,26 @@ func TGUpdates(buf *chan *user.User, userMap *map[int64]*user.User, cfg *config.
 		case strings.HasPrefix(update.Message.Text, "/url"):
 			var subURL *url.URL
 			if len(*buf) > cfg.MaxOnline {
-				_ = usr.Send(fmt.Sprintf("Too many connections, Please try again later."))
+				_ = usr.Send("Too many connections, Please try again later.")
 			} else {
 				subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
 				if err != nil || subURL.Scheme == "" {
 					_ = usr.Send("Invalid URL")
 				} else {
-					// 用户测试间隔
+					// the time between previous testing.
 					internal := time.Duration(cfg.Internal)
-					if time.Now().Sub(time.Unix(usr.Data.LastCheck, 0)) < internal*time.Minute {
-						remainTime := internal*time.Minute - time.Now().Sub(time.Unix(usr.Data.LastCheck, 0))
+					if time.Since(time.Unix(usr.Data.LastCheck, 0)) < internal*time.Minute {
+						remainTime := internal*time.Minute - time.Since(time.Unix(usr.Data.LastCheck, 0))
 						_ = usr.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
 					} else {
 						usr.Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
+						*buf <- usr
 						(*userMap)[update.Message.Chat.ID] = usr
 						_ = usr.Send("Checking nodes status...")
-						*buf <- usr
 					}
 				}
 			}
+
 		default:
 			_ = usr.Send("Invalid command")
 		}
