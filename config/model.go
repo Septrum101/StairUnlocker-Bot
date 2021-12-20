@@ -5,7 +5,7 @@ import (
 )
 
 type RawConfig struct {
-	Proxy []map[string]interface{} `yaml:"proxies,flow"`
+	Proxy []map[string]interface{} `yaml:"proxies"`
 }
 
 type BotConfig struct {

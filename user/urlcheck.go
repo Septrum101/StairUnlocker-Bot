@@ -4,6 +4,7 @@ import (
 	"fmt"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/thank243/StairUnlocker-Bot/config"
 	"github.com/thank243/StairUnlocker-Bot/utils"
 	"gopkg.in/yaml.v3"
@@ -35,8 +36,15 @@ func (u *User) URLCheck() {
 	report := fmt.Sprintf("Total %d nodes, %d unlock nodes.\nElapsed time: %s", len(proxiesList), len(netflixList), time.Since(start).Round(time.Millisecond))
 	log.Warnln(report)
 	telegramReport := fmt.Sprintf("%s\nTimestamp: %s\n%s\n%s", report, time.Now().Round(time.Millisecond), strings.Repeat("-", 35), strings.Join(latency, "\n"))
-	// todo upload file
-	_, _ = yaml.Marshal(NetflixFilter(netflixList, unmarshalProxies))
 	u.Data.CheckInfo = telegramReport
 	_ = u.Send(telegramReport)
+	// send proxies.yaml
+	marshal, _ := yaml.Marshal(NetflixFilter(netflixList, unmarshalProxies))
+	_, err = u.Bot.Send(tgbotapi.NewDocument(u.ID, tgbotapi.FileBytes{
+		Name:  "proxies.yaml",
+		Bytes: marshal,
+	}))
+	if err != nil {
+		log.Errorln(err.Error())
+	}
 }
