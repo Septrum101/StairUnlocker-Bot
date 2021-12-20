@@ -17,9 +17,23 @@ func (u *User) Send(ctx string) (resp tg.Message, err error) {
 
 func (u *User) UserOutInternal(n int) bool {
 	internal := time.Duration(n)
-	if time.Since(time.Unix(u.Data.LastCheck, 0)) < internal*time.Minute {
-		remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0))
-		_, _ = u.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
+	if remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0)); remainTime > 0 {
+		if u.RefuseMessageID == 0 {
+			resp, _ := u.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
+			u.RefuseMessageID = resp.MessageID
+			go func() {
+				for {
+					if remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0)); remainTime <= 0*time.Second {
+						_ = u.DeleteMessage(u.RefuseMessageID)
+						u.RefuseMessageID = 0
+						return
+					} else {
+						_ = u.EditMessage(u.RefuseMessageID, fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
+					}
+					time.Sleep(5 * time.Second)
+				}
+			}()
+		}
 		return false
 	} else {
 		return true
