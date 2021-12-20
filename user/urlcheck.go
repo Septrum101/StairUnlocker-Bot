@@ -18,10 +18,10 @@ func (u *User) URLCheck() {
 	defer func() { u.IsCheck = false }()
 	proxies, unmarshalProxies, err := u.generateProxies(config.BotCfg.ConverterAPI)
 	if err != nil {
-		_ = u.Send(err.Error())
+		_ = u.EditMessage(u.MessageID, err.Error())
 		return
 	}
-	_ = u.Send("Checking nodes unlock status...")
+	_ = u.EditMessage(u.MessageID, "Checking nodes unlock status...")
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
 	}
@@ -37,7 +37,7 @@ func (u *User) URLCheck() {
 	log.Warnln(report)
 	telegramReport := fmt.Sprintf("%s\nTimestamp: %s\n%s\n%s", report, time.Now().Round(time.Millisecond), strings.Repeat("-", 35), strings.Join(latency, "\n"))
 	u.Data.CheckInfo = telegramReport
-	_ = u.Send(telegramReport)
+	_ = u.EditMessage(u.MessageID, telegramReport)
 	// send proxies.yaml
 	marshal, _ := yaml.Marshal(NetflixFilter(netflixList, unmarshalProxies))
 	_, err = u.Bot.Send(tgbotapi.NewDocument(u.ID, tgbotapi.FileBytes{
