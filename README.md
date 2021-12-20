@@ -1,18 +1,13 @@
-### 配置说明
+### Demo： [@stairunlock_test_bot](https://t.me/stairunlock_test_bot)
 
+### 配置说明
 ````yaml
-// subconvert API 地址
-converterAPI: https://api.dler.io
-// 节点检测同时最大连接数
-maxConn: 256
-// 最大同时在线用户
-maxOnline: 10                      
-// 日志等级: debug/info/warning/error/silent
-log_level: info
-// 检测间隔时间(单位: 分钟)
-internal: 5
-// 机器人token
-telegramToken:                    
+converterAPI: https://api.dler.io   # subconverter API 地址
+maxConn: 256                        # 节点检测同时最大连接数  
+maxOnline: 10                       # 最大同时在线用户 
+log_level: info                     # 日志等级: debug/info/warning/error/silent
+internal: 5                         # 检测间隔时间(单位: 分钟)
+telegramToken:                      # 机器人token 
 ````
 
 ### 命令参数
@@ -23,5 +18,3 @@ Usage of StairUnlocker-Bot:
   -h	this help
   -v	show current version of StairUnlock
 ````
-
-### 有个测试bot： [@stairunlock_test_bot](https://t.me/stairunlock_test_bot)  介意的勿用。
