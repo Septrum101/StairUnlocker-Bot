@@ -33,17 +33,20 @@ func (u *User) URLCheck() {
 	start := time.Now()
 	netflixList, latency := utils.BatchCheck(proxiesList, connNum)
 	//proxiesTest(netflixList,u)
+	log.Warnln(fmt.Sprintf("Total %d nodes, %d unlock nodes. Elapsed time: %s", len(proxiesList), len(netflixList), time.Since(start).Round(time.Millisecond)))
 	report := fmt.Sprintf("Total %d nodes, %d unlock nodes.\nElapsed time: %s", len(proxiesList), len(netflixList), time.Since(start).Round(time.Millisecond))
-	log.Warnln(report)
 	telegramReport := fmt.Sprintf("%s\nTimestamp: %s\n%s\n%s", report, time.Now().Round(time.Millisecond), strings.Repeat("-", 35), strings.Join(latency, "\n"))
 	u.Data.CheckInfo = telegramReport
+	// update message, not send a new message
 	_ = u.EditMessage(u.MessageID, telegramReport)
 	// send proxies.yaml
-	marshal, _ := yaml.Marshal(NetflixFilter(netflixList, unmarshalProxies))
-	_, err = u.Bot.Send(tgbotapi.NewDocument(u.ID, tgbotapi.FileBytes{
-		Name:  "proxies.yaml",
-		Bytes: marshal,
-	}))
+	if len(netflixList) > 0 {
+		marshal, _ := yaml.Marshal(NetflixFilter(netflixList, unmarshalProxies))
+		_, err = u.Bot.Send(tgbotapi.NewDocument(u.ID, tgbotapi.FileBytes{
+			Name:  "proxies.yaml",
+			Bytes: marshal,
+		}))
+	}
 	if err != nil {
 		log.Errorln(err.Error())
 	}
