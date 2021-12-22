@@ -8,6 +8,7 @@ import (
 	"github.com/thank243/StairUnlocker-Bot/config"
 	"github.com/thank243/StairUnlocker-Bot/utils"
 	"gopkg.in/yaml.v3"
+	"sort"
 	"strings"
 	"time"
 )
@@ -32,6 +33,8 @@ func (u *User) URLCheck() {
 	}
 	start := time.Now()
 	netflixList, latency := utils.BatchCheck(proxiesList, connNum)
+	sort.Strings(netflixList)
+	sort.Strings(latency)
 	//proxiesTest(netflixList,u)
 	log.Warnln(fmt.Sprintf("Total %d nodes, %d unlock nodes. Elapsed time: %s", len(proxiesList), len(netflixList), time.Since(start).Round(time.Millisecond)))
 	report := fmt.Sprintf("Total %d nodes, %d unlock nodes.\nElapsed time: %s", len(proxiesList), len(netflixList), time.Since(start).Round(time.Millisecond))
