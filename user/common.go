@@ -6,12 +6,14 @@ import (
 	"time"
 )
 
-func (u *User) Send(ctx string) (resp tg.Message, err error) {
+func (u *User) Send(ctx string, isSaveMessageID bool) (resp tg.Message, err error) {
 	resp, err = u.Bot.Send(tg.NewMessage(u.ID, ctx))
 	if err != nil {
 		return
 	}
-	u.MessageID = resp.MessageID
+	if isSaveMessageID {
+		u.MessageID = resp.MessageID
+	}
 	return
 }
 
@@ -19,7 +21,7 @@ func (u *User) UserOutInternal(n int) bool {
 	internal := time.Duration(n)
 	if remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0)); remainTime > 0 {
 		if u.RefuseMessageID == 0 {
-			resp, _ := u.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
+			resp, _ := u.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)), true)
 			u.RefuseMessageID = resp.MessageID
 			go func() {
 				for {

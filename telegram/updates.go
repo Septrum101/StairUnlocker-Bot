@@ -44,29 +44,29 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 /url subURL - Test SubURL, Support http/https/vmess/ss/ssr/trojan.
 /retest - Retest last subURL.
 /stat - Show the last checking result.
-`)
+`, false)
 
 		case update.Message.Text == "/stat":
 			if usr.Data.CheckInfo == "" {
-				_, _ = usr.Send("Cannot find status information. Please use /url subURL command first.")
+				_, _ = usr.Send("Cannot find status information. Please use /url subURL command first.", false)
 			} else {
-				_, _ = usr.Send((*userMap)[usr.ID].Data.CheckInfo)
+				_, _ = usr.Send((*userMap)[usr.ID].Data.CheckInfo, false)
 			}
 
 		case strings.HasPrefix(update.Message.Text, "/url") || update.Message.Text == "/retest":
 			_ = usr.DeleteMessage(update.Message.MessageID)
 			if len(*buf) > config.BotCfg.MaxOnline {
-				_, _ = usr.Send("Too many connections, Please try again later.")
+				_, _ = usr.Send("Too many connections, Please try again later.", false)
 				continue
 			}
 			// limited double-checking
 			if usr.IsCheck {
-				_, _ = usr.Send("Duplication, Previous testing is not completed! Please try again later.")
+				_, _ = usr.Send("Duplication, Previous testing is not completed! Please try again later.", false)
 				continue
 			}
 			if update.Message.Text == "/retest" {
 				if usr.Data.SubURL == "" {
-					_, _ = usr.Send("Cannot find subURL. Please use /url subURL command first.")
+					_, _ = usr.Send("Cannot find subURL. Please use /url subURL command first.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
 					*buf <- usr
 					(*userMap)[update.Message.Chat.ID].Data.LastCheck = time.Now().Unix()
@@ -77,7 +77,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 				rawStr := strings.TrimSpace(replaceStrings.Replace(update.Message.Text))
 				subURL, err = url.Parse(rawStr)
 				if err != nil || subURL.Scheme == "" {
-					_, _ = usr.Send("Invalid URL. Please inspect your subURL.")
+					_, _ = usr.Send("Invalid URL. Please inspect your subURL.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
 					*buf <- usr
 					(*userMap)[update.Message.Chat.ID].Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
@@ -85,7 +85,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 			}
 
 		default:
-			_, _ = usr.Send("Invalid command")
+			_, _ = usr.Send("Invalid command", false)
 		}
 		log.Debugln("Telegram Bot: [ID: %d], Text: %s", update.Message.From.ID, update.Message.Text)
 	}

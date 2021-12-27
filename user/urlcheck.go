@@ -11,25 +11,25 @@ import (
 	"time"
 )
 
-func statistic(streamMediaMap map[string][]uint16) map[string]int {
+func statistic(streamMediaMap *map[string][]uint16) map[string]int {
 	statMap := make(map[string]int)
-	for i := range streamMediaMap {
-		for idx := range streamMediaMap[i] {
+	for i := range *streamMediaMap {
+		for idx := range (*streamMediaMap)[i] {
 			switch idx {
 			case 0:
-				if streamMediaMap[i][idx] != 0 {
+				if (*streamMediaMap)[i][idx] != 0 {
 					statMap["Netflix"]++
 				}
 			case 1:
-				if streamMediaMap[i][idx] != 0 {
+				if (*streamMediaMap)[i][idx] != 0 {
 					statMap["HBO"]++
 				}
 			case 2:
-				if streamMediaMap[i][idx] != 0 {
+				if (*streamMediaMap)[i][idx] != 0 {
 					statMap["Disney Plus"]++
 				}
 			case 3:
-				if streamMediaMap[i][idx] != 0 {
+				if (*streamMediaMap)[i][idx] != 0 {
 					statMap["Youtube Premium"]++
 				}
 			}
@@ -51,6 +51,7 @@ func (u *User) URLCheck() {
 	}
 	// animation while waiting test.
 	go func() {
+		log.Infoln("[ID: %d]: Checking nodes unlock status.", u.ID)
 		count := 0
 		for u.IsCheck {
 			count++
@@ -78,7 +79,7 @@ func (u *User) URLCheck() {
 		u.IsCheck = false
 		report := fmt.Sprintf("Total %d nodes tested\nElapsed time: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 		// save test results.
-		result := statistic(streamMediaUnlockMap)
+		result := statistic(&streamMediaUnlockMap)
 		var finalStr string
 		for k, v := range result {
 			finalStr += fmt.Sprintf("%s: %d\n", k, v)
