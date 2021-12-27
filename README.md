@@ -1,6 +1,8 @@
 ### Demo： [@stairunlock_test_bot](https://t.me/stairunlock_test_bot)
 
 ### 配置说明
+
+### 配置说明
 ````yaml
 converterAPI: https://api.dler.io   # subconverter API 地址
 maxConn: 256                        # 节点检测同时最大连接数  

@@ -21,5 +21,5 @@ var (
 	Version    bool
 	Help       bool
 	BotCfg     *BotConfig
-	configPath string
+	ConfigPath string
 )
