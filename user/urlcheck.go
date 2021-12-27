@@ -11,6 +11,33 @@ import (
 	"time"
 )
 
+func statistic(streamMediaMap map[string][]uint16) map[string]int {
+	statMap := make(map[string]int)
+	for i := range streamMediaMap {
+		for idx := range streamMediaMap[i] {
+			switch idx {
+			case 0:
+				if streamMediaMap[i][idx] != 0 {
+					statMap["Netflix"]++
+				}
+			case 1:
+				if streamMediaMap[i][idx] != 0 {
+					statMap["HBO"]++
+				}
+			case 2:
+				if streamMediaMap[i][idx] != 0 {
+					statMap["Disney Plus"]++
+				}
+			case 3:
+				if streamMediaMap[i][idx] != 0 {
+					statMap["Youtube Premium"]++
+				}
+			}
+		}
+	}
+	return statMap
+}
+
 func (u *User) URLCheck() {
 	var proxiesList []C.Proxy
 	u.IsCheck = true
@@ -36,26 +63,30 @@ func (u *User) URLCheck() {
 		return
 	}()
 
-
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
 	}
-	//同时连接数
+	// 同时连接数
 	connNum := config.BotCfg.MaxConn
 	if i := len(proxiesList); i < connNum {
 		connNum = i
 	}
-	// 有效节点才开始测试
+	// 必须包含节点
 	if len(proxiesList) > 0 {
 		start := time.Now()
 		streamMediaUnlockMap := utils.BatchCheck(proxiesList, connNum)
 		u.IsCheck = false
-		report := fmt.Sprintf("Total %d nodes. Elapsed time: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
+		report := fmt.Sprintf("Total %d nodes tested\nElapsed time: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 		// save test results.
-		telegramReport := fmt.Sprintf("%s\nTimestamp: %s\n", report, time.Now().Round(time.Second))
+		result := statistic(streamMediaUnlockMap)
+		var finalStr string
+		for k, v := range result {
+			finalStr += fmt.Sprintf("%s: %d\n", k, v)
+		}
+		telegramReport := fmt.Sprintf("StairUnlocker Bot Bulletin:\n%s\n%sTimestamp: %s\n%s", report, finalStr, time.Now().Round(time.Second), strings.Repeat("-", 30))
 		u.Data.CheckInfo = telegramReport
 		log.Warnln(report)
-		_ = u.EditMessage(u.MessageID, "Uploading PNG files...")
+		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
 		buffer, err := generatePNG(streamMediaUnlockMap)
 		if err != nil {
 			return
