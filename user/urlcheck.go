@@ -36,6 +36,7 @@ func (u *User) URLCheck() {
 		return
 	}()
 
+
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
 	}
