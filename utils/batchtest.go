@@ -26,6 +26,7 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaList []string, latency
 	// counts buffer channel
 	ch := make(chan int, 16)
 	latencyMap = make(map[string][]uint16)
+	lockMap := syncMap{Map: latencyMap}
 	defer close(ch)
 	curr, total := 0, len(proxiesList)*len(getStreamMedias())
 	for i := range proxiesList {
@@ -37,18 +38,24 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaList []string, latency
 					ch <- 1
 					curr += <-ch
 					log.Debugln("(%d/%d) %s : %s", curr, total, p.Name(), err.Error())
+					lockMap.Lock()
 					latencyMap[p.Name()] = append(latencyMap[p.Name()], 0)
+					lockMap.Unlock()
 				} else if sCode < 300 {
 					ch <- 1
 					curr += <-ch
 					log.Debugln("(%d/%d) %s | %s Unlock", curr, total, p.Name(), getSteamMediaNames()[idx])
+					lockMap.Lock()
 					latencyMap[p.Name()] = append(latencyMap[p.Name()], latency)
+					lockMap.Unlock()
 					streamMediaList = append(streamMediaList, p.Name())
 				} else {
 					ch <- 1
 					curr += <-ch
 					log.Debugln("(%d/%d) %s | None", curr, total, p.Name())
+					lockMap.Lock()
 					latencyMap[p.Name()] = append(latencyMap[p.Name()], 0)
+					lockMap.Unlock()
 				}
 			}
 			return nil, nil

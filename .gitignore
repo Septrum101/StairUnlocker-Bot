@@ -96,6 +96,7 @@ gen
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
+*.png
 config.yaml
 StairUnlocker-Bot
 test.go
