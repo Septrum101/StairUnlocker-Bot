@@ -33,7 +33,7 @@ func generatePNG(streamMediaUnlockMap map[string][]uint16) (*bytes.Buffer, error
 	dc.SetRGB(0, 0, 0)
 	dc.SetLineWidth(1)
 	// load font.
-	path := strings.Split(config.ConfigPath, "/")
+	path := strings.Split(config.ConfPath, "/")
 	path[len(path)-1] = "msyh.ttc"
 	err := dc.LoadFontFace(strings.Join(path, "/"), 15)
 	if err != nil {

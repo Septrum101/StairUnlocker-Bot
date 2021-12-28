@@ -51,7 +51,7 @@ func (u *User) URLCheck() {
 	}
 	// animation while waiting test.
 	go func() {
-		log.Infoln("[ID: %d]: Checking nodes unlock status.", u.ID)
+		log.Infoln("[User: %d] Checking nodes unlock status.", u.ID)
 		count := 0
 		for u.IsCheck {
 			count++
@@ -86,7 +86,7 @@ func (u *User) URLCheck() {
 		}
 		telegramReport := fmt.Sprintf("StairUnlocker Bot Bulletin:\n%s\n%sTimestamp: %s\n%s", report, finalStr, time.Now().Round(time.Second), strings.Repeat("-", 30))
 		u.Data.CheckInfo = telegramReport
-		log.Warnln(report)
+		log.Warnln("[User: %d] %s", u.ID, report)
 		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
 		buffer, err := generatePNG(streamMediaUnlockMap)
 		if err != nil {

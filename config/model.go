@@ -18,8 +18,8 @@ type BotConfig struct {
 }
 
 var (
-	Version    bool
-	Help       bool
-	BotCfg     *BotConfig
-	ConfigPath string
+	Version  bool
+	Help     bool
+	BotCfg   *BotConfig
+	ConfPath string
 )

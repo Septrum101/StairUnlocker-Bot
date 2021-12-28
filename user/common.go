@@ -24,15 +24,20 @@ func (u *User) UserOutInternal(n int) bool {
 			resp, _ := u.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)), true)
 			u.RefuseMessageID = resp.MessageID
 			go func() {
+				n := 5 * time.Second
 				for {
-					if remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0)); remainTime <= 0*time.Second {
+					remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0))
+					if remainTime <= 0*time.Second {
 						_ = u.DeleteMessage(u.RefuseMessageID)
 						u.RefuseMessageID = 0
 						return
 					} else {
 						_ = u.EditMessage(u.RefuseMessageID, fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
 					}
-					time.Sleep(5 * time.Second)
+					if remainTime <= 10*time.Second {
+						n = 500 * time.Millisecond
+					}
+					time.Sleep(n)
 				}
 			}()
 		}
