@@ -7,6 +7,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/thank243/StairUnlocker-Bot/config"
 	"github.com/thank243/StairUnlocker-Bot/utils"
+	"sort"
 	"strings"
 	"time"
 )
@@ -51,7 +52,7 @@ func (u *User) URLCheck() {
 	}
 	// animation while waiting test.
 	go func() {
-		log.Infoln("[User: %d] Checking nodes unlock status.", u.ID)
+		log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
 		count := 0
 		for u.IsCheck {
 			count++
@@ -79,26 +80,33 @@ func (u *User) URLCheck() {
 		u.IsCheck = false
 		report := fmt.Sprintf("Total %d nodes tested\nElapsed time: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 		// save test results.
-		result := statistic(&streamMediaUnlockMap)
 		var finalStr string
-		for k, v := range result {
-			finalStr += fmt.Sprintf("%s: %d\n", k, v)
+		i := 0
+		var nameList []string
+		statisticMap := statistic(&streamMediaUnlockMap)
+		for k := range statisticMap {
+			nameList = append(nameList, k)
+			i++
+		}
+		sort.Strings(nameList)
+		for i := range nameList {
+			finalStr += fmt.Sprintf("%s: %d\n", nameList[i], statisticMap[nameList[i]])
 		}
 		telegramReport := fmt.Sprintf("StairUnlocker Bot Bulletin:\n%s\n%sTimestamp: %s\n%s", report, finalStr, time.Now().Round(time.Second), strings.Repeat("-", 30))
 		u.Data.CheckInfo = telegramReport
-		log.Warnln("[User: %d] %s", u.ID, report)
+		log.Warnln("[ID: %d] %s", u.ID, report)
 		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
 		buffer, err := generatePNG(streamMediaUnlockMap)
 		if err != nil {
 			return
 		}
 		// send result image
-		docToSend := tgbotapi.NewDocument(u.ID, tgbotapi.FileBytes{
+		wrapPNG := tgbotapi.NewDocument(u.ID, tgbotapi.FileBytes{
 			Name:  fmt.Sprintf("stairunlocker_bot_result_%d.png", time.Now().Unix()),
 			Bytes: buffer.Bytes(),
 		})
-		docToSend.Caption = telegramReport + "\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l"
-		_, err = u.Bot.Send(docToSend)
+		wrapPNG.Caption = fmt.Sprintf("%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", telegramReport)
+		_, err = u.Bot.Send(wrapPNG)
 		_ = u.DeleteMessage(u.MessageID)
 		//proxiesTest(u)
 	}

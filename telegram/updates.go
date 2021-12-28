@@ -54,7 +54,10 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 			}
 
 		case strings.HasPrefix(update.Message.Text, "/url") || update.Message.Text == "/retest":
-			_ = usr.DeleteMessage(update.Message.MessageID)
+			// delete user privacy info
+			if strings.HasPrefix(update.Message.Text, "/url") {
+				_ = usr.DeleteMessage(update.Message.MessageID)
+			}
 			if len(*buf) > config.BotCfg.MaxOnline {
 				_, _ = usr.Send("Too many connections, Please try again later.", false)
 				continue
