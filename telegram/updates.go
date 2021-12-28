@@ -19,10 +19,8 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		bot.Debug = true
 	}
 	log.Infoln("Authorized on account %s", bot.Self.UserName)
-
 	updateCfg := tgBot.NewUpdate(0)
 	updateCfg.Timeout = 60
-
 	updates := bot.GetUpdatesChan(updateCfg)
 	for update := range updates {
 		if update.Message == nil {
@@ -55,9 +53,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 
 		case strings.HasPrefix(update.Message.Text, "/url") || update.Message.Text == "/retest":
 			// delete user privacy info
-			if strings.HasPrefix(update.Message.Text, "/url") {
-				_ = usr.DeleteMessage(update.Message.MessageID)
-			}
+			_ = usr.DeleteMessage(update.Message.MessageID)
 			if len(*buf) > config.BotCfg.MaxOnline {
 				_, _ = usr.Send("Too many connections, Please try again later.", false)
 				continue

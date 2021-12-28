@@ -39,22 +39,14 @@ func statistic(streamMediaMap *map[string][]uint16) map[string]int {
 	return statMap
 }
 
-func (u *User) URLCheck() {
-	var proxiesList []C.Proxy
-	u.IsCheck = true
-	defer func() {
-		u.IsCheck = false
-	}()
-	proxies, _, err := u.generateProxies(config.BotCfg.ConverterAPI)
-	if err != nil {
-		_ = u.EditMessage(u.MessageID, err.Error())
-		return
-	}
-	// animation while waiting test.
-	go func() {
-		log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
-		count := 0
-		for u.IsCheck {
+func sendUserCheckStatus(u *User, c chan bool) {
+	log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
+	count := 0
+	for {
+		select {
+		case <-c:
+			return
+		default:
 			count++
 			if count > 5 {
 				count = 0
@@ -62,22 +54,39 @@ func (u *User) URLCheck() {
 			_ = u.EditMessage(u.MessageID, fmt.Sprintf("Checking nodes unlock status%s", strings.Repeat(".", count)))
 			time.Sleep(500 * time.Millisecond)
 		}
-		return
+	}
+}
+
+func (u *User) URLCheck() {
+	var proxiesList []C.Proxy
+	c := make(chan bool)
+	u.IsCheck = true
+	defer func() {
+		u.IsCheck = false
+		close(c)
 	}()
+
+	proxies, _, err := u.generateProxies(config.BotCfg.ConverterAPI)
+	if err != nil {
+		_ = u.EditMessage(u.MessageID, err.Error())
+		return
+	}
+	// animation while waiting test.
+	go sendUserCheckStatus(u, c)
 
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
 	}
-	// 同时连接数
+	//	Max Connection at the same time.
 	connNum := config.BotCfg.MaxConn
 	if i := len(proxiesList); i < connNum {
 		connNum = i
 	}
-	// 必须包含节点
+	// Must have valid node.
 	if len(proxiesList) > 0 {
 		start := time.Now()
 		streamMediaUnlockMap := utils.BatchCheck(proxiesList, connNum)
-		u.IsCheck = false
+		c <- true
 		report := fmt.Sprintf("Total %d nodes tested\nElapsed time: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 		// save test results.
 		var finalStr string
@@ -109,5 +118,7 @@ func (u *User) URLCheck() {
 		_, err = u.Bot.Send(wrapPNG)
 		_ = u.DeleteMessage(u.MessageID)
 		//proxiesTest(u)
+	} else {
+		_ = u.EditMessage(u.MessageID, "Your subURL have not any valid nodes.")
 	}
 }
