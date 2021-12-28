@@ -21,6 +21,7 @@ func init() {
 	var (
 		buf []byte
 	)
+
 	if ConfPath != "" {
 		buf, _ = ioutil.ReadFile(ConfPath)
 	} else {
