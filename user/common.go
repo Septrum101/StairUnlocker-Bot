@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-func (u *User) Send(ctx string, isSaveMessageID bool) (resp tg.Message, err error) {
+func (u *User) Send(ctx string, isKeepSession bool) (resp tg.Message, err error) {
 	resp, err = u.Bot.Send(tg.NewMessage(u.ID, ctx))
 	if err != nil {
 		return
 	}
-	if isSaveMessageID {
+	if isKeepSession {
 		u.MessageID = resp.MessageID
 	}
 	return
