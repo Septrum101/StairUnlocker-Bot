@@ -14,15 +14,16 @@ func init() {
 	fmt.Printf(fmt.Sprintf("StairUnlock-Bot %s %s %s with %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, runtime.Version(), C.BuildTime))
 	flag.BoolVar(&Help, "h", false, "this help")
 	flag.BoolVar(&Version, "v", false, "show current version of StairUnlock")
-	flag.StringVar(&ConfigPath, "f", "", "specify configuration file")
+	flag.StringVar(&ConfPath, "f", "", "specify configuration file")
 	flag.Parse()
 
 	//initial config.yaml
 	var (
 		buf []byte
 	)
-	if ConfigPath != "" {
-		buf, _ = ioutil.ReadFile(ConfigPath)
+
+	if ConfPath != "" {
+		buf, _ = ioutil.ReadFile(ConfPath)
 	} else {
 		_, err := os.Stat("config.yaml")
 		if err != nil {

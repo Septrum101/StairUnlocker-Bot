@@ -14,8 +14,8 @@ import (
 )
 
 func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmarshalProxies *config.RawConfig, err error) {
-	log.Infoln("Converting from API server.")
-	_, err = u.Send("Converting from API server.")
+	log.Infoln("[User: %d] Converting from API server.", u.ID)
+	_, err = u.Send("Converting from API server.", true)
 	pList, err := u.convertAPI(apiURL)
 	if err != nil {
 		return
