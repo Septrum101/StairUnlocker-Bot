@@ -7,7 +7,6 @@ import (
 	"github.com/thank243/StairUnlocker-Bot/config"
 	"image/png"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -24,7 +23,7 @@ func getStrWidth(dc *gg.Context, str string) (reStr string, width float64) {
 	return str, width
 }
 
-func generatePNG(streamMediaUnlockMap map[string][]uint16) (*bytes.Buffer, error) {
+func generatePNG(streamMediaUnlockMap map[string][]string) (*bytes.Buffer, error) {
 	streamMediaNames := []string{"Netflix", "HBO", "DisneyPlus", "Youtube Premium"}
 	H := len(streamMediaUnlockMap)*25 + 100
 	dc := gg.NewContext(W, H)
@@ -80,8 +79,8 @@ func generatePNG(streamMediaUnlockMap map[string][]uint16) (*bytes.Buffer, error
 	for i := range nameSort {
 		dc.DrawString(nameSort[i], 22, 67.5+float64(n)*25)
 		for idx := range streamMediaUnlockMap[nameSort[i]] {
-			if streamMediaUnlockMap[nameSort[i]][idx] != 0 {
-				dc.DrawString(strconv.Itoa(int(streamMediaUnlockMap[nameSort[i]][idx]))+"ms", 5+getBeginFix(idx), 67.5+float64(n)*25)
+			if streamMediaUnlockMap[nameSort[i]][idx] != "" {
+				dc.DrawString(streamMediaUnlockMap[nameSort[i]][idx]+"ms", 5+getBeginFix(idx), 67.5+float64(n)*25)
 			} else {
 				dc.SetRGB(1, 0, 0)
 				str, strWidth = getStrWidth(dc, "None")

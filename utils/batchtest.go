@@ -5,57 +5,45 @@ import (
 	"github.com/Dreamacro/clash/common/batch"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
+	"strconv"
 )
 
-func getStreamMedias() []string {
-	return []string{
-		"https://www.netflix.com/title/70143836",
-		"https://www.hbomax.com",
-		"https://www.disneyplus.com",
-		"https://music.youtube.com",
-	}
-}
-
-func getSteamMediaNames() []string {
-	return []string{"Netflix", "HBO", "DisneyPlus", "Youtube Premium"}
-}
-
 //BatchCheck : n int, to set ConcurrencyNum.
-func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockMap map[string][]uint16) {
+func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockList []CheckData) {
 	b, _ := batch.New(context.Background(), batch.WithConcurrencyNum(n))
 	// counts buffer channel
 	ch := make(chan int, 16)
-	streamMediaUnlockMap = make(map[string][]uint16)
-	lockMap := syncMap{Map: streamMediaUnlockMap}
 	defer close(ch)
-	curr, total := 0, len(proxiesList)*len(getStreamMedias())
+	testParams := getTestParams()
+	var wrapList []checkParams
 	for i := range proxiesList {
-		p := proxiesList[i]
+		for idx := range testParams {
+			wrapList = append(wrapList, checkParams{
+				Proxy:    proxiesList[i],
+				testName: testParams[idx].testName,
+				testType: idx,
+				testURL:  testParams[idx].testURL,
+			})
+		}
+	}
+	curr, total := 0, len(wrapList)
+	for i := range wrapList {
+		p := wrapList[i]
 		b.Go(p.Name(), func() (interface{}, error) {
-			for idx := range getStreamMedias() {
-				latency, sCode, err := streamMediaUnlockTest(p, getStreamMedias()[idx])
-				if err != nil {
-					ch <- 1
-					curr += <-ch
-					log.Debugln("(%d/%d) %s : %s", curr, total, p.Name(), err.Error())
-					lockMap.Lock()
-					streamMediaUnlockMap[p.Name()] = append(streamMediaUnlockMap[p.Name()], 0)
-					lockMap.Unlock()
-				} else if sCode < 300 {
-					ch <- 1
-					curr += <-ch
-					log.Debugln("(%d/%d) %s | %s Unlock", curr, total, p.Name(), getSteamMediaNames()[idx])
-					lockMap.Lock()
-					streamMediaUnlockMap[p.Name()] = append(streamMediaUnlockMap[p.Name()], latency)
-					lockMap.Unlock()
-				} else {
-					ch <- 1
-					curr += <-ch
-					log.Debugln("(%d/%d) %s | None", curr, total, p.Name())
-					lockMap.Lock()
-					streamMediaUnlockMap[p.Name()] = append(streamMediaUnlockMap[p.Name()], 0)
-					lockMap.Unlock()
-				}
+			latency, resp, err := streamMediaUnlockTest(p)
+			if err != nil {
+				ch <- 1
+				curr += <-ch
+				log.Debugln("(%d/%d) %s : %s", curr, total, p.Name(), err.Error())
+			} else if resp {
+				ch <- 1
+				curr += <-ch
+				log.Debugln("(%d/%d) %s | %s Unlock", curr, total, p.Name(), p.testName)
+				streamMediaUnlockList = append(streamMediaUnlockList, CheckData{p.Name(), p.testName, strconv.Itoa(int(latency))})
+			} else {
+				ch <- 1
+				curr += <-ch
+				log.Debugln("(%d/%d) %s | None", curr, total, p.Name())
 			}
 			return nil, nil
 		})

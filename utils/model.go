@@ -1,8 +1,25 @@
 package utils
 
-import "sync"
+import C "github.com/Dreamacro/clash/constant"
 
-type syncMap struct {
-	sync.RWMutex
-	Map map[string][]uint16
+type checkParams struct {
+	C.Proxy
+	testName string
+	testType int
+	testURL  string
+}
+
+type CheckData struct {
+	ProxyName   string
+	StreamMedia string
+	Latency     string
+}
+
+func getTestParams() []checkParams {
+	return []checkParams{
+		{testName: "Netflix", testURL: "https://www.netflix.com/title/70143836"},
+		{testName: "HBO", testURL: "https://www.hbomax.com"},
+		{testName: "DisneyPlus", testURL: "https://www.disneyplus.com"},
+		{testName: "Youtube Premium", testURL: "https://music.youtube.com"},
+	}
 }

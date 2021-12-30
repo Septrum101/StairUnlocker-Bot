@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-func streamMediaUnlockTest(p C.Proxy, url string) (t uint16, sCode int, err error) {
+func streamMediaUnlockTest(p checkParams) (t uint16, r bool, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	addr, err := urlToMetadata(url)
+	addr, err := urlToMetadata(p.testURL)
 	if err != nil {
 		return
 	}
@@ -29,7 +29,7 @@ func streamMediaUnlockTest(p C.Proxy, url string) (t uint16, sCode int, err erro
 		}
 	}(instance)
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, p.testURL, nil)
 	if err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func streamMediaUnlockTest(p C.Proxy, url string) (t uint16, sCode int, err erro
 	if err != nil {
 		return
 	}
-	sCode = resp.StatusCode
+	r = testResult(resp, p.testType)
 	return
 }
 
