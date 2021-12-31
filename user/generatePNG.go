@@ -24,7 +24,7 @@ func getStrWidth(dc *gg.Context, str string) (reStr string, width float64) {
 }
 
 func generatePNG(streamMediaUnlockMap map[string][]string) (*bytes.Buffer, error) {
-	streamMediaNames := []string{"Netflix", "HBO", "DisneyPlus", "Youtube Premium"}
+	streamMediaNames := []string{"Netflix", "HBO", "Disney Plus", "Youtube Premium"}
 	H := len(streamMediaUnlockMap)*25 + 100
 	dc := gg.NewContext(W, H)
 	dc.SetRGB(1, 1, 1)

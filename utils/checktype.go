@@ -3,9 +3,9 @@ package utils
 import "net/http"
 
 func testResult(r *http.Response, testType int) bool {
-	switch {
+	switch testType {
 	// simple return statusCode
-	case testType == 0 || testType == 1 || testType == 2 || testType == 3:
+	case 0, 1, 2, 3:
 		if r.StatusCode < 300 {
 			return true
 		}

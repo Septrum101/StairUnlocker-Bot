@@ -46,7 +46,7 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	}(reqs.Body)
 	re, _ = ioutil.ReadAll(reqs.Body)
 	if reqs.StatusCode != 200 {
-		log.Errorln(string(re))
+		log.Errorln("[ID: %d] %s", u.ID, re)
 		err = fmt.Errorf(string(re))
 		return
 	}
