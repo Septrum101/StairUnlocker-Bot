@@ -12,28 +12,45 @@ import (
 	"time"
 )
 
-func statistic(streamMediaMap *map[string][]uint16) map[string]int {
-	statMap := make(map[string]int)
-	for i := range *streamMediaMap {
-		for idx := range (*streamMediaMap)[i] {
-			switch idx {
-			case 0:
-				if (*streamMediaMap)[i][idx] != 0 {
-					statMap["Netflix"]++
-				}
-			case 1:
-				if (*streamMediaMap)[i][idx] != 0 {
-					statMap["HBO"]++
-				}
-			case 2:
-				if (*streamMediaMap)[i][idx] != 0 {
-					statMap["Disney Plus"]++
-				}
-			case 3:
-				if (*streamMediaMap)[i][idx] != 0 {
-					statMap["Youtube Premium"]++
-				}
+func sendUserCheckStatus(u *User, c chan bool) {
+	log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
+	count := 0
+	for {
+		select {
+		case <-c:
+			return
+		default:
+			count++
+			if count > 5 {
+				count = 0
 			}
+			_ = u.EditMessage(u.MessageID, fmt.Sprintf("Checking nodes unlock status%s", strings.Repeat(".", count)))
+			time.Sleep(500 * time.Millisecond)
+		}
+	}
+}
+
+func statistic(streamMediaList *[]utils.CheckData) map[string]int {
+	statMap := make(map[string]int)
+	for i := range utils.GetCheckParams() {
+		statMap[utils.GetCheckParams()[i].CheckName] = 0
+	}
+	for i := range *streamMediaList {
+		switch (*streamMediaList)[i].StreamMedia {
+		case "Netflix":
+			statMap["Netflix"]++
+		case "HBO":
+			statMap["HBO"]++
+		case "Disney Plus":
+			statMap["Disney Plus"]++
+		case "Youtube Premium":
+			statMap["Youtube Premium"]++
+		case "TVB":
+			statMap["TVB"]++
+		case "Abema":
+			statMap["Abema"]++
+		case "Bahamut":
+			statMap["Bahamut"]++
 		}
 	}
 	return statMap
@@ -85,14 +102,14 @@ func (u *User) URLCheck() {
 	// Must have valid node.
 	if len(proxiesList) > 0 {
 		start := time.Now()
-		streamMediaUnlockMap := utils.BatchCheck(proxiesList, connNum)
+		streamMediaUnlockList := utils.BatchCheck(proxiesList, connNum)
 		c <- true
 		report := fmt.Sprintf("Total %d nodes tested\nElapsed time: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 		// save test results.
 		var finalStr string
 		i := 0
 		var nameList []string
-		statisticMap := statistic(&streamMediaUnlockMap)
+		statisticMap := statistic(&streamMediaUnlockList)
 		for k := range statisticMap {
 			nameList = append(nameList, k)
 			i++
@@ -105,6 +122,28 @@ func (u *User) URLCheck() {
 		u.Data.CheckInfo = telegramReport
 		log.Warnln("[ID: %d] %s", u.ID, report)
 		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
+		streamMediaUnlockMap := make(map[string][]string)
+		for i := range proxiesList {
+			streamMediaUnlockMap[proxiesList[i].Name()] = make([]string, 7)
+		}
+		for idx := range streamMediaUnlockList {
+			switch streamMediaUnlockList[idx].StreamMedia {
+			case "Netflix":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][0] = streamMediaUnlockList[idx].Latency
+			case "HBO":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][1] = streamMediaUnlockList[idx].Latency
+			case "Disney Plus":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][2] = streamMediaUnlockList[idx].Latency
+			case "Youtube Premium":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][3] = streamMediaUnlockList[idx].Latency
+			case "TVB":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][4] = streamMediaUnlockList[idx].Latency
+			case "Abema":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][5] = streamMediaUnlockList[idx].Latency
+			case "Bahamut":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][6] = streamMediaUnlockList[idx].Latency
+			}
+		}
 		buffer, err := generatePNG(streamMediaUnlockMap)
 		if err != nil {
 			return

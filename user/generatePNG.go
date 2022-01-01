@@ -5,18 +5,18 @@ import (
 	"github.com/Dreamacro/clash/log"
 	"github.com/fogleman/gg"
 	"github.com/thank243/StairUnlocker-Bot/config"
+	"github.com/thank243/StairUnlocker-Bot/utils"
 	"image/png"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
 
-const W = 1000
+const W = 1500
 
 func getBeginFix(i int) float64 {
-	f := 2.3
-	return W/f + (W-40-(W-40)/f)/4*float64(i)
+	f := 3.5
+	return W/f + (W-40-(W-40)/f)/float64(len(utils.GetCheckParams()))*float64(i)
 }
 
 func getStrWidth(dc *gg.Context, str string) (reStr string, width float64) {
@@ -24,8 +24,12 @@ func getStrWidth(dc *gg.Context, str string) (reStr string, width float64) {
 	return str, width
 }
 
-func generatePNG(streamMediaUnlockMap map[string][]uint16) (*bytes.Buffer, error) {
-	streamMediaNames := []string{"Netflix", "HBO", "DisneyPlus", "Youtube Premium"}
+func generatePNG(streamMediaUnlockMap map[string][]string) (*bytes.Buffer, error) {
+	var streamMediaNames []string
+	for i := range utils.GetCheckParams() {
+		streamMediaNames = append(streamMediaNames, utils.GetCheckParams()[i].CheckName)
+	}
+
 	H := len(streamMediaUnlockMap)*25 + 100
 	dc := gg.NewContext(W, H)
 	dc.SetRGB(1, 1, 1)
@@ -80,8 +84,8 @@ func generatePNG(streamMediaUnlockMap map[string][]uint16) (*bytes.Buffer, error
 	for i := range nameSort {
 		dc.DrawString(nameSort[i], 22, 67.5+float64(n)*25)
 		for idx := range streamMediaUnlockMap[nameSort[i]] {
-			if streamMediaUnlockMap[nameSort[i]][idx] != 0 {
-				dc.DrawString(strconv.Itoa(int(streamMediaUnlockMap[nameSort[i]][idx]))+"ms", 5+getBeginFix(idx), 67.5+float64(n)*25)
+			if streamMediaUnlockMap[nameSort[i]][idx] != "" {
+				dc.DrawString(streamMediaUnlockMap[nameSort[i]][idx]+"ms", 5+getBeginFix(idx), 67.5+float64(n)*25)
 			} else {
 				dc.SetRGB(1, 0, 0)
 				str, strWidth = getStrWidth(dc, "None")
