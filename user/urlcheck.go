@@ -32,7 +32,9 @@ func sendUserCheckStatus(u *User, c chan bool) {
 
 func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 	statMap := make(map[string]int)
-	statMap["Netflix"], statMap["HBO"], statMap["Disney Plus"], statMap["Youtube Premium"] = 0, 0, 0, 0
+	for i := range utils.GetCheckParams() {
+		statMap[utils.GetCheckParams()[i].CheckName] = 0
+	}
 	for i := range *streamMediaList {
 		switch (*streamMediaList)[i].StreamMedia {
 		case "Netflix":
@@ -43,6 +45,12 @@ func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 			statMap["Disney Plus"]++
 		case "Youtube Premium":
 			statMap["Youtube Premium"]++
+		case "TVB":
+			statMap["TVB"]++
+		case "Abema":
+			statMap["Abema"]++
+		case "Bahamut":
+			statMap["Bahamut"]++
 		}
 	}
 	return statMap
@@ -98,7 +106,7 @@ func (u *User) URLCheck() {
 		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
 		streamMediaUnlockMap := make(map[string][]string)
 		for i := range proxiesList {
-			streamMediaUnlockMap[proxiesList[i].Name()] = make([]string, 4)
+			streamMediaUnlockMap[proxiesList[i].Name()] = make([]string, 7)
 		}
 		for idx := range streamMediaUnlockList {
 			switch streamMediaUnlockList[idx].StreamMedia {
@@ -110,6 +118,12 @@ func (u *User) URLCheck() {
 				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][2] = streamMediaUnlockList[idx].Latency
 			case "Youtube Premium":
 				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][3] = streamMediaUnlockList[idx].Latency
+			case "TVB":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][4] = streamMediaUnlockList[idx].Latency
+			case "Abema":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][5] = streamMediaUnlockList[idx].Latency
+			case "Bahamut":
+				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][6] = streamMediaUnlockList[idx].Latency
 			}
 		}
 		buffer, err := generatePNG(streamMediaUnlockMap)

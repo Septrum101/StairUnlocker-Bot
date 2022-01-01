@@ -5,17 +5,18 @@ import (
 	"github.com/Dreamacro/clash/log"
 	"github.com/fogleman/gg"
 	"github.com/thank243/StairUnlocker-Bot/config"
+	"github.com/thank243/StairUnlocker-Bot/utils"
 	"image/png"
 	"sort"
 	"strings"
 	"time"
 )
 
-const W = 1000
+const W = 1450
 
 func getBeginFix(i int) float64 {
-	f := 2.3
-	return W/f + (W-40-(W-40)/f)/4*float64(i)
+	f := 3.7
+	return W/f + (W-40-(W-40)/f)/float64(len(utils.GetCheckParams()))*float64(i)
 }
 
 func getStrWidth(dc *gg.Context, str string) (reStr string, width float64) {
@@ -24,7 +25,11 @@ func getStrWidth(dc *gg.Context, str string) (reStr string, width float64) {
 }
 
 func generatePNG(streamMediaUnlockMap map[string][]string) (*bytes.Buffer, error) {
-	streamMediaNames := []string{"Netflix", "HBO", "Disney Plus", "Youtube Premium"}
+	var streamMediaNames []string
+	for i := range utils.GetCheckParams() {
+		streamMediaNames = append(streamMediaNames, utils.GetCheckParams()[i].CheckName)
+	}
+
 	H := len(streamMediaUnlockMap)*25 + 100
 	dc := gg.NewContext(W, H)
 	dc.SetRGB(1, 1, 1)

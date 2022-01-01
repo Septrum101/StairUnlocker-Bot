@@ -14,15 +14,14 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockList []CheckData
 	// counts buffer channel
 	ch := make(chan int, 16)
 	defer close(ch)
-	testParams := getTestParams()
-	var wrapList []checkParams
+	testParams := GetCheckParams()
+	var wrapList []CheckAdapter
 	for i := range proxiesList {
 		for idx := range testParams {
-			wrapList = append(wrapList, checkParams{
-				Proxy:    proxiesList[i],
-				testName: testParams[idx].testName,
-				testType: idx,
-				testURL:  testParams[idx].testURL,
+			wrapList = append(wrapList, CheckAdapter{
+				Proxy:     proxiesList[i],
+				CheckName: testParams[idx].CheckName,
+				CheckURL:  testParams[idx].CheckURL,
 			})
 		}
 	}
@@ -38,12 +37,12 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockList []CheckData
 			} else if resp {
 				ch <- 1
 				curr += <-ch
-				log.Debugln("(%d/%d) %s | %s Unlock", curr, total, p.Name(), p.testName)
-				streamMediaUnlockList = append(streamMediaUnlockList, CheckData{p.Name(), p.testName, strconv.Itoa(int(latency))})
+				log.Debugln("(%d/%d) %s | %s Unlock", curr, total, p.Name(), p.CheckName)
+				streamMediaUnlockList = append(streamMediaUnlockList, CheckData{p.Name(), p.CheckName, strconv.Itoa(int(latency))})
 			} else {
 				ch <- 1
 				curr += <-ch
-				log.Debugln("(%d/%d) %s | None", curr, total, p.Name())
+				log.Debugln("(%d/%d) %s | %s None", curr, total, p.Name(), p.CheckName)
 			}
 			return nil, nil
 		})

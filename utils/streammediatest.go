@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-func streamMediaUnlockTest(p checkParams) (t uint16, r bool, err error) {
+func streamMediaUnlockTest(p CheckAdapter) (t uint16, r bool, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	addr, err := urlToMetadata(p.testURL)
+	addr, err := urlToMetadata(p.CheckURL)
 	if err != nil {
 		return
 	}
@@ -29,10 +29,11 @@ func streamMediaUnlockTest(p checkParams) (t uint16, r bool, err error) {
 		}
 	}(instance)
 
-	req, err := http.NewRequest(http.MethodGet, p.testURL, nil)
+	req, err := http.NewRequest(http.MethodGet, p.CheckURL, nil)
 	if err != nil {
 		return
 	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36 Edg/96.0.1054.62")
 	req = req.WithContext(ctx)
 
 	transport := &http.Transport{
@@ -57,11 +58,11 @@ func streamMediaUnlockTest(p checkParams) (t uint16, r bool, err error) {
 		return
 	}
 	t = uint16(time.Since(start) / time.Millisecond)
+	r = testResult(resp, p.CheckName)
 	err = resp.Body.Close()
 	if err != nil {
 		return
 	}
-	r = testResult(resp, p.testType)
 	return
 }
 
