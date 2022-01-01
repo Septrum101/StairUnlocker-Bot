@@ -12,10 +12,10 @@ import (
 	"time"
 )
 
-const W = 1450
+const W = 1500
 
 func getBeginFix(i int) float64 {
-	f := 3.7
+	f := 3.5
 	return W/f + (W-40-(W-40)/f)/float64(len(utils.GetCheckParams()))*float64(i)
 }
 
