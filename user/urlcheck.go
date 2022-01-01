@@ -56,6 +56,24 @@ func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 	return statMap
 }
 
+func sendUserCheckStatus(u *User, c chan bool) {
+	log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
+	count := 0
+	for {
+		select {
+		case <-c:
+			return
+		default:
+			count++
+			if count > 5 {
+				count = 0
+			}
+			_ = u.EditMessage(u.MessageID, fmt.Sprintf("Checking nodes unlock status%s", strings.Repeat(".", count)))
+			time.Sleep(500 * time.Millisecond)
+		}
+	}
+}
+
 func (u *User) URLCheck() {
 	var proxiesList []C.Proxy
 	c := make(chan bool)
@@ -139,5 +157,7 @@ func (u *User) URLCheck() {
 		_, err = u.Bot.Send(wrapPNG)
 		_ = u.DeleteMessage(u.MessageID)
 		//proxiesTest(u)
+	} else {
+		_ = u.EditMessage(u.MessageID, "Your subURL have not any valid nodes.")
 	}
 }
