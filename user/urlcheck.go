@@ -118,7 +118,7 @@ func (u *User) URLCheck() {
 		for i := range nameList {
 			finalStr += fmt.Sprintf("%s: %d\n", nameList[i], statisticMap[nameList[i]])
 		}
-		telegramReport := fmt.Sprintf("StairUnlocker Bot Bulletin:\n%s\n%sTimestamp: %s\n%s", report, finalStr, time.Now().Round(time.Second), strings.Repeat("-", 30))
+		telegramReport := fmt.Sprintf("StairUnlocker Bot Bulletin:\n%s\n%sTimestamp: %s\n%s", report, finalStr, time.Now().Round(time.Second), strings.Repeat("-", 25))
 		u.Data.CheckInfo = telegramReport
 		log.Warnln("[ID: %d] %s", u.ID, report)
 		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
