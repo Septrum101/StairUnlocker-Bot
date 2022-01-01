@@ -7,7 +7,6 @@ import (
 	"github.com/Dreamacro/clash/log"
 	"github.com/thank243/StairUnlocker-Bot/config"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -31,10 +30,9 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	params := url.Values{}
 	params.Add("target", "clash")
 	params.Add("list", strconv.FormatBool(true))
-	params.Add("url", u.Data.SubURL)
 	params.Add("emoji", strconv.FormatBool(false))
 	baseUrl.RawQuery = params.Encode()
-	reqs, err := http.Get(baseUrl.String())
+	reqs, err := http.Get(fmt.Sprintf("%s&url=%s", baseUrl.String(), u.Data.SubURL))
 	if err != nil {
 		return
 	}
@@ -44,7 +42,7 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 			return
 		}
 	}(reqs.Body)
-	re, _ = ioutil.ReadAll(reqs.Body)
+	re, _ = io.ReadAll(reqs.Body)
 	if reqs.StatusCode != 200 {
 		log.Errorln("[ID: %d] %s", u.ID, re)
 		err = fmt.Errorf(string(re))
@@ -54,6 +52,10 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 }
 
 func (u *User) parseProxies(cfg *config.RawConfig) (proxies map[string]C.Proxy, err error) {
+	if cfg == nil {
+		err = fmt.Errorf("the original converted URL must be used for clash")
+		return
+	}
 	proxies = make(map[string]C.Proxy)
 	proxiesConfig := cfg.Proxy
 	for idx, mapping := range proxiesConfig {
