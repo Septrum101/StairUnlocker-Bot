@@ -140,6 +140,6 @@ func (u *User) URLCheck() {
 		wrapPNG.Caption = fmt.Sprintf("%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", telegramReport)
 		_, err = u.Bot.Send(wrapPNG)
 		_ = u.DeleteMessage(u.MessageID)
-		// proxiesTest(u)
+		//proxiesTest(u)
 	}
 }

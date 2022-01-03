@@ -32,7 +32,10 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	params.Add("list", strconv.FormatBool(true))
 	params.Add("emoji", strconv.FormatBool(false))
 	baseUrl.RawQuery = params.Encode()
-	reqs, err := http.Get(fmt.Sprintf("%s&url=%s", baseUrl.String(), u.Data.SubURL))
+	client := http.Client{}
+	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&url=%s", baseUrl.String(), u.Data.SubURL), nil)
+	req.Header.Set("User-Agent", "ClashforWindows/0.19.2")
+	resp, err := client.Do(req)
 	if err != nil {
 		return
 	}
@@ -41,9 +44,9 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 		if err != nil {
 			return
 		}
-	}(reqs.Body)
-	re, _ = io.ReadAll(reqs.Body)
-	if reqs.StatusCode != 200 {
+	}(resp.Body)
+	re, _ = io.ReadAll(resp.Body)
+	if resp.StatusCode != 200 {
 		log.Errorln("[ID: %d] %s", u.ID, re)
 		err = fmt.Errorf(string(re))
 		return
