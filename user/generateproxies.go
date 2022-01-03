@@ -20,6 +20,19 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 		return
 	}
 	unmarshalProxies, _ = config.UnmarshalRawConfig(pList)
+	// compatible clash-core 1.9.0
+	for i := range unmarshalProxies.Proxy {
+		for k := range unmarshalProxies.Proxy[i] {
+			switch k {
+			case "ws-path":
+				unmarshalProxies.Proxy[i]["ws-opts"] = map[string]interface{}{"path": unmarshalProxies.Proxy[i]["ws-path"]}
+				delete(unmarshalProxies.Proxy[i], "ws-path")
+			case "ws-header":
+				unmarshalProxies.Proxy[i]["ws-opts"] = map[string]interface{}{"ws-header": unmarshalProxies.Proxy[i]["ws-header"]}
+				delete(unmarshalProxies.Proxy[i], "ws-header")
+			}
+		}
+	}
 	proxies, err = u.parseProxies(unmarshalProxies)
 	return
 }
