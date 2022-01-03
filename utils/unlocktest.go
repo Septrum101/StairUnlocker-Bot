@@ -58,7 +58,7 @@ func unlockTest(p CheckAdapter) (t uint16, r bool, err error) {
 		return
 	}
 	t = uint16(time.Since(start) / time.Millisecond)
-	r = testResult(resp, p.CheckName)
+	r = isUnlock(resp, p.CheckName)
 	err = resp.Body.Close()
 	if err != nil {
 		return

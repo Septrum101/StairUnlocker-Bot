@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func testResult(r *http.Response, testName string) bool {
+func isUnlock(r *http.Response, testName string) bool {
 	switch testName {
 	case "Netflix", "HBO", "Disney Plus", "Youtube Premium":
 		if r.StatusCode < 300 {
