@@ -14,22 +14,23 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockList []CheckData
 	// counts buffer channel
 	ch := make(chan int, 16)
 	defer close(ch)
-	testParams := GetCheckParams()
+	// wrap node list for test.
 	var wrapList []CheckAdapter
 	for i := range proxiesList {
-		for idx := range testParams {
+		for idx := range GetCheckParams() {
 			wrapList = append(wrapList, CheckAdapter{
 				Proxy:     proxiesList[i],
-				CheckName: testParams[idx].CheckName,
-				CheckURL:  testParams[idx].CheckURL,
+				CheckName: GetCheckParams()[idx].CheckName,
+				CheckURL:  GetCheckParams()[idx].CheckURL,
 			})
 		}
 	}
+	// prefix for node name on log.
 	curr, total := 0, len(wrapList)
 	for i := range wrapList {
 		p := wrapList[i]
 		b.Go(p.Name(), func() (interface{}, error) {
-			latency, resp, err := streamMediaUnlockTest(p)
+			latency, resp, err := unlockTest(p)
 			if err != nil {
 				ch <- 1
 				curr += <-ch

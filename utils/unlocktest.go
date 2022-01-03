@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func streamMediaUnlockTest(p CheckAdapter) (t uint16, r bool, err error) {
+func unlockTest(p CheckAdapter) (t uint16, r bool, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	addr, err := urlToMetadata(p.CheckURL)

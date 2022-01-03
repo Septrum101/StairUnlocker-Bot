@@ -12,12 +12,12 @@ import (
 	"time"
 )
 
-func sendUserCheckStatus(u *User, c chan bool) {
+func sendUserCheckStatus(u *User, checkFlag chan bool) {
 	log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
 	count := 0
 	for {
 		select {
-		case <-c:
+		case <-checkFlag:
 			return
 		default:
 			count++
@@ -32,6 +32,7 @@ func sendUserCheckStatus(u *User, c chan bool) {
 
 func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 	statMap := make(map[string]int)
+	// initial 0 for each stream media
 	for i := range utils.GetCheckParams() {
 		statMap[utils.GetCheckParams()[i].CheckName] = 0
 	}
@@ -56,31 +57,13 @@ func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 	return statMap
 }
 
-func sendUserCheckStatus(u *User, c chan bool) {
-	log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
-	count := 0
-	for {
-		select {
-		case <-c:
-			return
-		default:
-			count++
-			if count > 5 {
-				count = 0
-			}
-			_ = u.EditMessage(u.MessageID, fmt.Sprintf("Checking nodes unlock status%s", strings.Repeat(".", count)))
-			time.Sleep(500 * time.Millisecond)
-		}
-	}
-}
-
 func (u *User) URLCheck() {
 	var proxiesList []C.Proxy
-	c := make(chan bool)
+	checkFlag := make(chan bool)
 	u.IsCheck = true
 	defer func() {
 		u.IsCheck = false
-		close(c)
+		close(checkFlag)
 	}()
 
 	proxies, _, err := u.generateProxies(config.BotCfg.ConverterAPI)
@@ -89,7 +72,7 @@ func (u *User) URLCheck() {
 		return
 	}
 	// animation while waiting test.
-	go sendUserCheckStatus(u, c)
+	go sendUserCheckStatus(u, checkFlag)
 
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
@@ -102,49 +85,50 @@ func (u *User) URLCheck() {
 	// Must have valid node.
 	if len(proxiesList) > 0 {
 		start := time.Now()
-		streamMediaUnlockList := utils.BatchCheck(proxiesList, connNum)
-		c <- true
+		unlockList := utils.BatchCheck(proxiesList, connNum)
+		checkFlag <- true
 		report := fmt.Sprintf("Total %d nodes tested\nElapsed time: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
-		// save test results.
-		var finalStr string
-		i := 0
+
 		var nameList []string
-		statisticMap := statistic(&streamMediaUnlockList)
+		i := 0
+		statisticMap := statistic(&unlockList)
 		for k := range statisticMap {
 			nameList = append(nameList, k)
 			i++
 		}
 		sort.Strings(nameList)
+		var finalStr string
 		for i := range nameList {
 			finalStr += fmt.Sprintf("%s: %d\n", nameList[i], statisticMap[nameList[i]])
 		}
 		telegramReport := fmt.Sprintf("StairUnlocker Bot Bulletin:\n%s\n%sTimestamp: %s\n%s", report, finalStr, time.Now().Round(time.Second), strings.Repeat("-", 25))
+		// save test results.
 		u.Data.CheckInfo = telegramReport
 		log.Warnln("[ID: %d] %s", u.ID, report)
 		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
-		streamMediaUnlockMap := make(map[string][]string)
+		unlockMap := make(map[string][]string)
 		for i := range proxiesList {
-			streamMediaUnlockMap[proxiesList[i].Name()] = make([]string, 7)
+			unlockMap[proxiesList[i].Name()] = make([]string, 7)
 		}
-		for idx := range streamMediaUnlockList {
-			switch streamMediaUnlockList[idx].StreamMedia {
+		for idx := range unlockList {
+			switch unlockList[idx].StreamMedia {
 			case "Netflix":
-				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][0] = streamMediaUnlockList[idx].Latency
+				unlockMap[unlockList[idx].ProxyName][0] = unlockList[idx].Latency
 			case "HBO":
-				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][1] = streamMediaUnlockList[idx].Latency
+				unlockMap[unlockList[idx].ProxyName][1] = unlockList[idx].Latency
 			case "Disney Plus":
-				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][2] = streamMediaUnlockList[idx].Latency
+				unlockMap[unlockList[idx].ProxyName][2] = unlockList[idx].Latency
 			case "Youtube Premium":
-				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][3] = streamMediaUnlockList[idx].Latency
+				unlockMap[unlockList[idx].ProxyName][3] = unlockList[idx].Latency
 			case "TVB":
-				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][4] = streamMediaUnlockList[idx].Latency
+				unlockMap[unlockList[idx].ProxyName][4] = unlockList[idx].Latency
 			case "Abema":
-				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][5] = streamMediaUnlockList[idx].Latency
+				unlockMap[unlockList[idx].ProxyName][5] = unlockList[idx].Latency
 			case "Bahamut":
-				streamMediaUnlockMap[streamMediaUnlockList[idx].ProxyName][6] = streamMediaUnlockList[idx].Latency
+				unlockMap[unlockList[idx].ProxyName][6] = unlockList[idx].Latency
 			}
 		}
-		buffer, err := generatePNG(streamMediaUnlockMap)
+		buffer, err := generatePNG(unlockMap)
 		if err != nil {
 			return
 		}
@@ -156,8 +140,6 @@ func (u *User) URLCheck() {
 		wrapPNG.Caption = fmt.Sprintf("%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", telegramReport)
 		_, err = u.Bot.Send(wrapPNG)
 		_ = u.DeleteMessage(u.MessageID)
-		//proxiesTest(u)
-	} else {
-		_ = u.EditMessage(u.MessageID, "Your subURL have not any valid nodes.")
+		// proxiesTest(u)
 	}
 }

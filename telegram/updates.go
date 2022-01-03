@@ -58,7 +58,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 				_, _ = usr.Send("Too many connections, Please try again later.", false)
 				continue
 			}
-			// limited double-checking
+			// forbid double-checking
 			if usr.IsCheck {
 				_, _ = usr.Send("Duplication, Previous testing is not completed! Please try again later.", false)
 				continue
