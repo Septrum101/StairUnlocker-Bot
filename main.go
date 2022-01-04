@@ -30,10 +30,7 @@ func main() {
 			log.Errorln(err.Error())
 		}
 	}()
-
 	for usr := range ch {
-		go func(u *user.User) {
-			u.URLCheck()
-		}(usr)
+		go usr.URLCheck()
 	}
 }
