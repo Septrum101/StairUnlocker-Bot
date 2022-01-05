@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
 func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmarshalProxies *config.RawConfig, err error) {
@@ -19,6 +20,7 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 	if err != nil {
 		return
 	}
+	u.Data.LastCheck = time.Now().Unix()
 	unmarshalProxies, _ = config.UnmarshalRawConfig(pList)
 	// compatible clash-core 1.9.0
 	for i := range unmarshalProxies.Proxy {
