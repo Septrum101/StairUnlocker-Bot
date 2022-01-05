@@ -70,14 +70,13 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 				}
 			} else {
 				var subURL *url.URL
-				replaceStrings := strings.NewReplacer("/url", "", "\r", "", "\n", "")
-				rawStr := strings.TrimSpace(replaceStrings.Replace(update.Message.Text))
+				rawStr := strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", ""))
 				subURL, err = url.Parse(rawStr)
 				if err != nil || subURL.Scheme == "" {
 					_, _ = usr.Send("Invalid URL. Please inspect your subURL.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
-					*buf <- usr
 					usr.Data.SubURL = subURL.String()
+					*buf <- usr
 				}
 			}
 

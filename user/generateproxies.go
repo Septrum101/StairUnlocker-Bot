@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Dreamacro/clash/adapter"
 	C "github.com/Dreamacro/clash/constant"
@@ -46,9 +47,10 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	params.Add("target", "clash")
 	params.Add("list", strconv.FormatBool(true))
 	params.Add("emoji", strconv.FormatBool(false))
+	params.Add("url", u.Data.SubURL)
 	baseUrl.RawQuery = params.Encode()
 	client := http.Client{}
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("%s&url=%s", baseUrl.String(), u.Data.SubURL), nil)
+	req, _ := http.NewRequest(http.MethodGet, baseUrl.String(), nil)
 	req.Header.Set("User-Agent", "ClashforWindows/0.19.2")
 	resp, err := client.Do(req)
 	if err != nil {
@@ -63,7 +65,7 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	re, _ = io.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
 		log.Errorln("[ID: %d] %s", u.ID, re)
-		err = fmt.Errorf(string(re))
+		err = errors.New(string(re))
 		return
 	}
 	return
