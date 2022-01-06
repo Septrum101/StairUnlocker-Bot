@@ -22,7 +22,10 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 		return
 	}
 	u.Data.LastCheck = time.Now().Unix()
-	unmarshalProxies, _ = config.UnmarshalRawConfig(pList)
+	unmarshalProxies, err = config.UnmarshalRawConfig(pList)
+	if err != nil {
+		return
+	}
 	// compatible clash-core 1.9.0
 	for i := range unmarshalProxies.Proxy {
 		for k := range unmarshalProxies.Proxy[i] {
