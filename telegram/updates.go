@@ -7,7 +7,6 @@ import (
 	"github.com/thank243/StairUnlocker-Bot/user"
 	"net/url"
 	"strings"
-	"time"
 )
 
 func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
@@ -68,18 +67,16 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 					_, _ = usr.Send("Cannot find subURL. Please use /url subURL command first.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
 					*buf <- usr
-					(*userMap)[update.Message.Chat.ID].Data.LastCheck = time.Now().Unix()
 				}
 			} else {
 				var subURL *url.URL
-				replaceStrings := strings.NewReplacer("/url", "", "\r", "", "\n", "")
-				rawStr := strings.TrimSpace(replaceStrings.Replace(update.Message.Text))
+				rawStr := strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", ""))
 				subURL, err = url.Parse(rawStr)
 				if err != nil || subURL.Scheme == "" {
 					_, _ = usr.Send("Invalid URL. Please inspect your subURL.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
+					usr.Data.SubURL = subURL.String()
 					*buf <- usr
-					(*userMap)[update.Message.Chat.ID].Data = user.Data{LastCheck: time.Now().Unix(), SubURL: subURL.String()}
 				}
 			}
 

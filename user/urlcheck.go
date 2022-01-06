@@ -128,6 +128,7 @@ func (u *User) URLCheck() {
 				unlockMap[unlockList[idx].ProxyName][6] = unlockList[idx].Latency
 			}
 		}
+		//proxiesTest(u)
 		buffer, err := generatePNG(unlockMap)
 		if err != nil {
 			return
@@ -140,6 +141,5 @@ func (u *User) URLCheck() {
 		wrapPNG.Caption = fmt.Sprintf("%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", telegramReport)
 		_, err = u.Bot.Send(wrapPNG)
 		_ = u.DeleteMessage(u.MessageID)
-		//proxiesTest(u)
 	}
 }

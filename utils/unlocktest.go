@@ -38,7 +38,7 @@ func unlockTest(p CheckAdapter) (t uint16, r bool, err error) {
 
 	transport := &http.Transport{
 		DialContext: func(context.Context, string, string) (net.Conn, error) {
-			return instance, nil
+			return instance, err
 		},
 		// from http.DefaultTransport
 		MaxIdleConns:          100,
