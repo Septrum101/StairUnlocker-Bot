@@ -12,24 +12,6 @@ import (
 	"time"
 )
 
-func sendUserCheckStatus(u *User, checkFlag chan bool) {
-	log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
-	count := 0
-	for {
-		select {
-		case <-checkFlag:
-			return
-		default:
-			count++
-			if count > 5 {
-				count = 0
-			}
-			_ = u.EditMessage(u.MessageID, fmt.Sprintf("Checking nodes unlock status%s", strings.Repeat(".", count)))
-			time.Sleep(500 * time.Millisecond)
-		}
-	}
-}
-
 func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 	statMap := make(map[string]int)
 	// initial 0 for each stream media
@@ -58,9 +40,9 @@ func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 }
 
 func (u *User) URLCheck() {
+	u.IsCheck = true
 	var proxiesList []C.Proxy
 	checkFlag := make(chan bool)
-	u.IsCheck = true
 	defer func() {
 		u.IsCheck = false
 		close(checkFlag)
@@ -72,7 +54,23 @@ func (u *User) URLCheck() {
 		return
 	}
 	// animation while waiting test.
-	go sendUserCheckStatus(u, checkFlag)
+	go func(u *User, checkFlag chan bool) {
+		log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
+		count := 0
+		for {
+			select {
+			case <-checkFlag:
+				return
+			default:
+				count++
+				if count > 5 {
+					count = 0
+				}
+				_ = u.EditMessage(u.MessageID, fmt.Sprintf("Checking nodes unlock status%s", strings.Repeat(".", count)))
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
+	}(u, checkFlag)
 
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)

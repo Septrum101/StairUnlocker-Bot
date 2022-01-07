@@ -18,6 +18,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		bot.Debug = true
 	}
 	log.Infoln("Authorized on account %s", bot.Self.UserName)
+	// todo initial command list
 	updateCfg := tgBot.NewUpdate(0)
 	updateCfg.Timeout = 60
 	updates := bot.GetUpdatesChan(updateCfg)
@@ -39,6 +40,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		case update.Message.Text == "/start":
 			_, _ = usr.Send(`
 /url subURL - Test SubURL, Support http/https/vmess/ss/ssr/trojan.
+/ip subURL - Test True IP information, Support http/https/vmess/ss/ssr/trojan.
 /retest - Retest last subURL.
 /stat - Show the last checking result.
 `, false)
@@ -70,14 +72,27 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 				}
 			} else {
 				var subURL *url.URL
-				rawStr := strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", ""))
-				subURL, err = url.Parse(rawStr)
+				subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
 				if err != nil || subURL.Scheme == "" {
 					_, _ = usr.Send("Invalid URL. Please inspect your subURL.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
 					usr.Data.SubURL = subURL.String()
 					*buf <- usr
 				}
+			}
+
+		case strings.HasPrefix(update.Message.Text, "/ip"):
+			_ = usr.DeleteMessage(update.Message.MessageID)
+			if len(*buf) > config.BotCfg.MaxOnline {
+				_, _ = usr.Send("Too many connections, Please try again later.", false)
+				continue
+			}
+			if usr.IsCheck {
+				_, _ = usr.Send("Duplication, Previous testing is not completed! Please try again later.", false)
+				continue
+			}
+			if usr.UserOutInternal(config.BotCfg.Internal) {
+				go usr.TrueIP(update.Message.Text)
 			}
 
 		default:
