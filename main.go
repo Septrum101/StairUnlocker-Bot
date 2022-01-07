@@ -31,6 +31,6 @@ func main() {
 		}
 	}()
 	for usr := range ch {
-		go usr.URLCheck()
+		go usr.StreamMedia()
 	}
 }

@@ -12,24 +12,6 @@ import (
 	"time"
 )
 
-func sendUserCheckStatus(u *User, checkFlag chan bool) {
-	log.Infoln("[ID: %d] Checking nodes unlock status.", u.ID)
-	count := 0
-	for {
-		select {
-		case <-checkFlag:
-			return
-		default:
-			count++
-			if count > 5 {
-				count = 0
-			}
-			_ = u.EditMessage(u.MessageID, fmt.Sprintf("Checking nodes unlock status%s", strings.Repeat(".", count)))
-			time.Sleep(500 * time.Millisecond)
-		}
-	}
-}
-
 func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 	statMap := make(map[string]int)
 	// initial 0 for each stream media
@@ -57,10 +39,10 @@ func statistic(streamMediaList *[]utils.CheckData) map[string]int {
 	return statMap
 }
 
-func (u *User) URLCheck() {
+func (u *User) StreamMedia() {
+	u.IsCheck = true
 	var proxiesList []C.Proxy
 	checkFlag := make(chan bool)
-	u.IsCheck = true
 	defer func() {
 		u.IsCheck = false
 		close(checkFlag)
@@ -72,7 +54,7 @@ func (u *User) URLCheck() {
 		return
 	}
 	// animation while waiting test.
-	go sendUserCheckStatus(u, checkFlag)
+	go u.statusMessage("Checking nodes unlock status", checkFlag)
 
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
@@ -87,7 +69,7 @@ func (u *User) URLCheck() {
 		start := time.Now()
 		unlockList := utils.BatchCheck(proxiesList, connNum)
 		checkFlag <- true
-		report := fmt.Sprintf("Total %d nodes tested\nElapsed time: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
+		report := fmt.Sprintf("Total %d nodes, Duration: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 
 		var nameList []string
 		i := 0
@@ -101,7 +83,7 @@ func (u *User) URLCheck() {
 		for i := range nameList {
 			finalStr += fmt.Sprintf("%s: %d\n", nameList[i], statisticMap[nameList[i]])
 		}
-		telegramReport := fmt.Sprintf("StairUnlocker Bot Bulletin:\n%s\n%sTimestamp: %s\n%s", report, finalStr, time.Now().Round(time.Second), strings.Repeat("-", 25))
+		telegramReport := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\n%s\n%sTimestamp: %s\n%s", C.Version, report, finalStr, time.Now().UTC().Format(time.RFC3339), strings.Repeat("-", 25))
 		// save test results.
 		u.Data.CheckInfo = telegramReport
 		log.Warnln("[ID: %d] %s", u.ID, report)
@@ -128,7 +110,7 @@ func (u *User) URLCheck() {
 				unlockMap[unlockList[idx].ProxyName][6] = unlockList[idx].Latency
 			}
 		}
-		//proxiesTest(u)
+
 		buffer, err := generatePNG(unlockMap)
 		if err != nil {
 			return
