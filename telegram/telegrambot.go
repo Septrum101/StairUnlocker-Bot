@@ -19,12 +19,19 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		bot.Debug = true
 	}
 	log.Infoln("Authorized on account %s", bot.Self.UserName)
-	// todo initial command list
-	_, _ = bot.Request(tgBot.SetMyCommandsConfig{Commands: []tgBot.BotCommand{
+	// initial command list
+	preCommands, _ := bot.GetMyCommands()
+	currCommands := []tgBot.BotCommand{
 		{"url", "Get nodes unlock status."},
 		{"ip", "Get Real IP information."},
 		{"stat", "Show the latest checking result."},
-	}})
+	}
+	if fmt.Sprint(preCommands) != fmt.Sprint(currCommands) {
+		_, err = bot.Request(tgBot.SetMyCommandsConfig{Commands: currCommands})
+		if err != nil {
+			log.Errorln(err.Error())
+		}
+	}
 
 	updateCfg := tgBot.NewUpdate(0)
 	updateCfg.Timeout = 60
