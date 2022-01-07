@@ -2,7 +2,9 @@ package user
 
 import (
 	"fmt"
+	"github.com/Dreamacro/clash/log"
 	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"strings"
 	"time"
 )
 
@@ -61,4 +63,22 @@ func (u *User) EditMessage(msgID int, text string) error {
 		return err
 	}
 	return nil
+}
+
+func (u *User) statusMessage(info string, checkFlag chan bool) {
+	log.Infoln("[ID: %d] %s.", u.ID, info)
+	count := 0
+	for {
+		select {
+		case <-checkFlag:
+			return
+		default:
+			count++
+			if count > 5 {
+				count = 0
+			}
+			_ = u.EditMessage(u.MessageID, fmt.Sprintf("%s%s", info, strings.Repeat(".", count)))
+			time.Sleep(500 * time.Millisecond)
+		}
+	}
 }

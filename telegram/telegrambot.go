@@ -41,7 +41,6 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 			_, _ = usr.Send(`
 /url subURL - Test SubURL, Support http/https/vmess/ss/ssr/trojan.
 /ip subURL - Test True IP information, Support http/https/vmess/ss/ssr/trojan.
-/retest - Retest last subURL.
 /stat - Show the last checking result.
 `, false)
 
@@ -52,7 +51,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 				_, _ = usr.Send((*userMap)[usr.ID].Data.CheckInfo, false)
 			}
 
-		case strings.HasPrefix(update.Message.Text, "/url") || update.Message.Text == "/retest":
+		case strings.HasPrefix(update.Message.Text, "/url") || strings.HasPrefix(update.Message.Text, "/ip"):
 			// delete user privacy info
 			_ = usr.DeleteMessage(update.Message.MessageID)
 			if len(*buf) > config.BotCfg.MaxOnline {
@@ -64,35 +63,23 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 				_, _ = usr.Send("Duplication, Previous testing is not completed! Please try again later.", false)
 				continue
 			}
-			if update.Message.Text == "/retest" {
-				if usr.Data.SubURL == "" {
-					_, _ = usr.Send("Cannot find subURL. Please use /url subURL command first.", false)
+
+			var subURL *url.URL
+			if strings.HasPrefix(update.Message.Text, "/url") {
+				trimStr := strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", ""))
+				subURL, err = url.Parse(trimStr)
+				if err != nil || (usr.Data.SubURL == "" && trimStr == "") {
+					_, _ = usr.Send("Invalid URL. Please inspect your subURL.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
+					if trimStr != "" {
+						usr.Data.SubURL = subURL.String()
+					}
 					*buf <- usr
 				}
 			} else {
-				var subURL *url.URL
-				subURL, err = url.Parse(strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", "")))
-				if err != nil || subURL.Scheme == "" {
-					_, _ = usr.Send("Invalid URL. Please inspect your subURL.", false)
-				} else if usr.UserOutInternal(config.BotCfg.Internal) {
-					usr.Data.SubURL = subURL.String()
-					*buf <- usr
+				if usr.UserOutInternal(config.BotCfg.Internal) {
+					go usr.TrueIP(update.Message.Text)
 				}
-			}
-
-		case strings.HasPrefix(update.Message.Text, "/ip"):
-			_ = usr.DeleteMessage(update.Message.MessageID)
-			if len(*buf) > config.BotCfg.MaxOnline {
-				_, _ = usr.Send("Too many connections, Please try again later.", false)
-				continue
-			}
-			if usr.IsCheck {
-				_, _ = usr.Send("Duplication, Previous testing is not completed! Please try again later.", false)
-				continue
-			}
-			if usr.UserOutInternal(config.BotCfg.Internal) {
-				go usr.TrueIP(update.Message.Text)
 			}
 
 		default:
