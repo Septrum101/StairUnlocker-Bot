@@ -19,6 +19,7 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 	_, err = u.SendMessage("Converting from API server.", true)
 	pList, err := u.convertAPI(apiURL)
 	if err != nil {
+		u.Data.SubURL = ""
 		return
 	}
 	u.Data.LastCheck = time.Now().Unix()
@@ -26,6 +27,7 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 	if err != nil {
 		return
 	}
+	//proxiesTest(u)
 	// compatible clash-core 1.9.0
 	for i := range unmarshalProxies.Proxy {
 		for k := range unmarshalProxies.Proxy[i] {

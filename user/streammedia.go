@@ -83,7 +83,7 @@ func (u *User) StreamMedia() {
 		for i := range nameList {
 			finalStr += fmt.Sprintf("%s: %d\n", nameList[i], statisticMap[nameList[i]])
 		}
-		telegramReport := fmt.Sprintf("StairUnlocker Bot Bulletin:\n%s\n%sTimestamp: %s\n%s", report, finalStr, time.Now().Round(time.Second), strings.Repeat("-", 25))
+		telegramReport := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\n%s\n%sTimestamp: %s\n%s", C.Version, report, finalStr, time.Now().UTC().Format(time.RFC3339), strings.Repeat("-", 25))
 		// save test results.
 		u.Data.CheckInfo = telegramReport
 		log.Warnln("[ID: %d] %s", u.ID, report)
@@ -110,7 +110,7 @@ func (u *User) StreamMedia() {
 				unlockMap[unlockList[idx].ProxyName][6] = unlockList[idx].Latency
 			}
 		}
-		//proxiesTest(u)
+
 		buffer, err := generatePNG(unlockMap)
 		if err != nil {
 			return

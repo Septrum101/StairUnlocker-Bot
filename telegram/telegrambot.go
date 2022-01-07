@@ -19,16 +19,13 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		bot.Debug = true
 	}
 	log.Infoln("Authorized on account %s", bot.Self.UserName)
-	x, _ := bot.GetMyCommands()
-	fmt.Println(x)
-	_, _ = bot.Request(tgBot.SetMyCommandsConfig{Commands: []tgBot.BotCommand{
-		{"url", "Test SubURL, Support http/https/vmess/ss/ssr/trojan."},
-		{"ip", "Test Real IP information, Support http/https/vmess/ss/ssr/trojan."},
-		{"stat", "Show the last checking result"},
-	}})
-	x, _ = bot.GetMyCommands()
-	fmt.Println(x)
 	// todo initial command list
+	_, _ = bot.Request(tgBot.SetMyCommandsConfig{Commands: []tgBot.BotCommand{
+		{"url", "Get nodes unlock status."},
+		{"ip", "Get Real IP information."},
+		{"stat", "Show the latest checking result."},
+	}})
+
 	updateCfg := tgBot.NewUpdate(0)
 	updateCfg.Timeout = 60
 	updates := bot.GetUpdatesChan(updateCfg)
@@ -48,15 +45,17 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		// select telegram cmd.
 		switch {
 		case update.Message.Text == "/start":
-			_, _ = usr.SendMessage(`
-/url subURL - Test SubURL, Support http/https/vmess/ss/ssr/trojan.
-/ip subURL - Test Real IP information, Support http/https/vmess/ss/ssr/trojan.
-/stat - Show the last checking result.
-`, false)
+			cmdList, _ := bot.GetMyCommands()
+			var str string
+			for i := range cmdList {
+				str += fmt.Sprintf("/%s - %s\n", cmdList[i].Command, cmdList[i].Description)
+			}
+			str += "Once used, the bot will use latest subURL for testing."
+			_, _ = usr.SendMessage(str, false)
 
 		case update.Message.Text == "/stat":
 			if usr.Data.CheckInfo == "" {
-				_, _ = usr.SendMessage("Cannot find status information. Please use /url subURL command once.", false)
+				_, _ = usr.SendMessage("Cannot find status information. Please use [/url subURL] command once.", false)
 			} else {
 				_, _ = usr.SendMessage((*userMap)[usr.ID].Data.CheckInfo, false)
 			}
@@ -79,7 +78,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 				trimStr := strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", ""))
 				subURL, err = url.Parse(trimStr)
 				if err != nil || (usr.Data.SubURL == "" && trimStr == "") {
-					_, _ = usr.SendMessage("Invalid URL. Please inspect your subURL or use /url subURL command once.", false)
+					_, _ = usr.SendMessage("Invalid URL. Please inspect your subURL or use [/url subURL] command once.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
 					if trimStr != "" {
 						usr.Data.SubURL = subURL.String()
