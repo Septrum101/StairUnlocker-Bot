@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func (u *User) Send(ctx string, isKeepSession bool) (resp tg.Message, err error) {
+func (u *User) SendMessage(ctx string, isKeepSession bool) (resp tg.Message, err error) {
 	resp, err = u.Bot.Send(tg.NewMessage(u.ID, ctx))
 	if err != nil {
 		return
@@ -23,7 +23,7 @@ func (u *User) UserOutInternal(n int) bool {
 	internal := time.Duration(n)
 	if remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0)); remainTime > 0 {
 		if u.RefuseMessageID == 0 {
-			resp, _ := u.Send(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)), true)
+			resp, _ := u.SendMessage(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)), true)
 			u.RefuseMessageID = resp.MessageID
 			go func() {
 				n := 5 * time.Second
@@ -66,7 +66,7 @@ func (u *User) EditMessage(msgID int, text string) error {
 }
 
 func (u *User) statusMessage(info string, checkFlag chan bool) {
-	log.Infoln("[ID: %d] %s.", u.ID, info)
+	log.Infoln("[ID: %d] %s", u.ID, info)
 	count := 0
 	for {
 		select {

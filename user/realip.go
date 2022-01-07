@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func (u *User) TrueIP(messageText string) {
+func (u *User) RealIP(messageText string) {
 	u.IsCheck = true
 	checkFlag := make(chan bool)
 	defer func() {
@@ -23,7 +23,7 @@ func (u *User) TrueIP(messageText string) {
 	trimStr := strings.TrimSpace(strings.ReplaceAll(messageText, "/ip", ""))
 	subURL, err := url.Parse(trimStr)
 	if err != nil || (u.Data.SubURL == "" && trimStr == "") {
-		_, _ = u.Send("Invalid URL. Please inspect your subURL.", false)
+		_, _ = u.SendMessage("Invalid URL. Please inspect your subURL or use /url subURL command once.", false)
 		return
 	} else {
 		if trimStr != "" {
@@ -44,7 +44,7 @@ func (u *User) TrueIP(messageText string) {
 
 		start := time.Now()
 		inbound, outbound := utils.GetIPList(proxiesList, config.BotCfg.MaxConn)
-		log.Warnln("[ID: %d] Total inbounds: %d -> outbounds: %d", u.ID, len(outbound), len(inbound))
+		log.Warnln("[ID: %d] Total %d nodes: inbounds: %d -> outbounds: %d", len(proxies), u.ID, len(outbound), len(inbound))
 		ipStatTitle := fmt.Sprintf("StairUnlocker Bot Bulletin:\nTotal %d nodes, Duration: %s\ninbound IP: %d\noutbound IP: %d\nTimestamp: %s", len(proxies), time.Since(start).Round(time.Millisecond), len(inbound), len(outbound), time.Now().UTC().Format(time.RFC3339))
 		ipStat := "StairUnlocker Bot Bulletin:\nEntrypoint IP: "
 		for _, v := range inbound {
