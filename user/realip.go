@@ -44,7 +44,7 @@ func (u *User) RealIP(messageText string) {
 
 		start := time.Now()
 		inbound, outbound := utils.GetIPList(proxiesList, config.BotCfg.MaxConn)
-		log.Warnln("[ID: %d] Total %d nodes: inbounds: %d -> outbounds: %d", u.ID, len(proxies), len(outbound), len(inbound))
+		log.Warnln("[ID: %d] Total %d nodes: inbounds: %d -> outbounds: %d", u.ID, len(proxies), len(inbound), len(outbound))
 		ipStatTitle := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\nTotal %d nodes, Duration: %s\ninbound IP: %d\noutbound IP: %d\nTimestamp: %s", C.Version, len(proxies), time.Since(start).Round(time.Millisecond), len(inbound), len(outbound), time.Now().UTC().Format(time.RFC3339))
 		ipStat := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\nEntrypoint IP: ", C.Version)
 		for _, v := range inbound {
