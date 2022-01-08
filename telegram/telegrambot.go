@@ -2,15 +2,19 @@ package telegram
 
 import (
 	"fmt"
+	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
 	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/thank243/StairUnlocker-Bot/config"
 	"github.com/thank243/StairUnlocker-Bot/user"
+	"github.com/thank243/StairUnlocker-Bot/utils"
 	"net/url"
 	"strings"
+	"time"
 )
 
 func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
+	start := time.Now()
 	bot, err := tgBot.NewBotAPI(config.BotCfg.TelegramToken)
 	if err != nil {
 		panic(err)
@@ -25,6 +29,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		{"url", "Get nodes unlock status."},
 		{"ip", "Get Real IP information."},
 		{"stat", "Show the latest checking result."},
+		{"version", "Show the version."},
 	}
 	if fmt.Sprint(preCommands) != fmt.Sprint(currCommands) {
 		_, err = bot.Request(tgBot.SetMyCommandsConfig{Commands: currCommands})
@@ -97,6 +102,17 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 					go usr.RealIP(update.Message.Text)
 				}
 			}
+
+		case update.Message.Text == "/version":
+			_ = usr.DeleteMessage(update.Message.MessageID)
+			todayUser := 0
+			for _, v := range *userMap {
+				if time.Now().Unix()-v.Data.LastCheck < int64(24*time.Hour.Seconds()) {
+					todayUser++
+				}
+			}
+			uptime := utils.FormatTime(time.Since(start))
+			_, _ = usr.SendMessage(fmt.Sprintf("StairUnlocker Bot %s\nUsers: (%d/%d) \nUptime: %s", C.Version, todayUser, len(*userMap), uptime), false)
 
 		default:
 			_, _ = usr.SendMessage("Invalid command", false)
