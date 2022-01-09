@@ -12,6 +12,7 @@ import (
 
 func unlockTest(p CheckAdapter) (t uint16, r bool, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
 	defer cancel()
 	addr, err := urlToMetadata(p.CheckURL)
 	if err != nil {
@@ -19,6 +20,7 @@ func unlockTest(p CheckAdapter) (t uint16, r bool, err error) {
 	}
 
 	instance, err := p.DialContext(ctx, &addr)
+
 	if err != nil {
 		return
 	}
@@ -42,7 +44,7 @@ func unlockTest(p CheckAdapter) (t uint16, r bool, err error) {
 		},
 		// from http.DefaultTransport
 		MaxIdleConns:          100,
-		IdleConnTimeout:       5 * time.Second,
+		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
