@@ -29,7 +29,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		{"url", "Get nodes unlock status."},
 		{"ip", "Get Real IP information."},
 		{"stat", "Show the latest checking result."},
-		{"version", "Show the version."},
+		{"version", "Show version."},
 	}
 	if fmt.Sprint(preCommands) != fmt.Sprint(currCommands) {
 		_, err = bot.Request(tgBot.SetMyCommandsConfig{Commands: currCommands})

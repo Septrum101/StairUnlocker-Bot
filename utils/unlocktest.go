@@ -42,7 +42,7 @@ func unlockTest(p CheckAdapter) (t uint16, r bool, err error) {
 		},
 		// from http.DefaultTransport
 		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
+		IdleConnTimeout:       5 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
