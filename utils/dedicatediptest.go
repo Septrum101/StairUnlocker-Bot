@@ -63,7 +63,7 @@ func endIPTest(p C.Proxy, url string) (ipInfo geoIP, err error) {
 		},
 		// from http.DefaultTransport
 		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
+		IdleConnTimeout:       5 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 	}
@@ -72,6 +72,7 @@ func endIPTest(p C.Proxy, url string) (ipInfo geoIP, err error) {
 		Transport: transport,
 	}
 	defer client.CloseIdleConnections()
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return
