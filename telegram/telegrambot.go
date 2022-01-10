@@ -54,6 +54,9 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 			}
 			usr = (*userMap)[update.Message.Chat.ID]
 		}
+		// delete user privacy info
+		_ = usr.DeleteMessage(update.Message.MessageID)
+
 		// select telegram cmd.
 		switch {
 		case update.Message.Text == "/start":
@@ -73,8 +76,6 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 			}
 
 		case strings.HasPrefix(update.Message.Text, "/url") || strings.HasPrefix(update.Message.Text, "/ip"):
-			// delete user privacy info
-			_ = usr.DeleteMessage(update.Message.MessageID)
 			if len(*buf) > config.BotCfg.MaxOnline {
 				_, _ = usr.SendMessage("Too many connections, Please try again later.", false)
 				continue
@@ -85,11 +86,11 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 				continue
 			}
 
-			var subURL *url.URL
 			if strings.HasPrefix(update.Message.Text, "/url") {
+				var subURL *url.URL
 				trimStr := strings.TrimSpace(strings.ReplaceAll(update.Message.Text, "/url", ""))
 				subURL, err = url.Parse(trimStr)
-				if err != nil || (usr.Data.SubURL == "" && trimStr == "") {
+				if err != nil || (usr.Data.SubURL == "" && trimStr == "") || (subURL.Scheme == "" && trimStr != "") {
 					_, _ = usr.SendMessage("Invalid URL. Please inspect your subURL or use [/url subURL] command once.", false)
 				} else if usr.UserOutInternal(config.BotCfg.Internal) {
 					if trimStr != "" {
@@ -104,7 +105,6 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 			}
 
 		case update.Message.Text == "/version":
-			_ = usr.DeleteMessage(update.Message.MessageID)
 			todayUser := 0
 			for _, v := range *userMap {
 				if time.Now().Unix()-v.Data.LastCheck < int64(24*time.Hour.Seconds()) {
