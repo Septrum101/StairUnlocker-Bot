@@ -27,6 +27,11 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 	if err != nil {
 		return
 	}
+	if len(unmarshalProxies.Proxy) == 0 {
+		log.Errorln("[ID: %d] %s", u.ID, "No nodes were found!")
+		err = errors.New("no nodes were found")
+		return
+	}
 	//proxiesTest(u)
 	// compatible clash-core 1.9.0
 	for i := range unmarshalProxies.Proxy {
@@ -56,7 +61,7 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 	baseUrl.RawQuery = params.Encode()
 	client := http.Client{}
 	req, _ := http.NewRequest(http.MethodGet, baseUrl.String(), nil)
-	req.Header.Set("User-Agent", "ClashforWindows/0.19.2")
+	req.Header.Set("User-Agent", "ClashforWindows/0.19.5")
 	resp, err := client.Do(req)
 	if err != nil {
 		return
@@ -77,10 +82,6 @@ func (u *User) convertAPI(apiURL string) (re []byte, err error) {
 }
 
 func (u *User) parseProxies(cfg *config.RawConfig) (proxies map[string]C.Proxy, err error) {
-	if cfg == nil {
-		err = fmt.Errorf("the original converted URL must be used for clash")
-		return
-	}
 	proxies = make(map[string]C.Proxy)
 	proxiesConfig := cfg.Proxy
 	for idx, mapping := range proxiesConfig {
