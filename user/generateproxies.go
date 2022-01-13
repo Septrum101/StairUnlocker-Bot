@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
 )
 
 func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmarshalProxies *config.RawConfig, err error) {
@@ -22,7 +21,6 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 		u.Data.SubURL = ""
 		return
 	}
-	u.Data.LastCheck = time.Now().Unix()
 	unmarshalProxies, err = config.UnmarshalRawConfig(pList)
 	if err != nil {
 		return
@@ -30,6 +28,11 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 	if len(unmarshalProxies.Proxy) == 0 {
 		log.Errorln("[ID: %d] %s", u.ID, "No nodes were found!")
 		err = errors.New("no nodes were found")
+		return
+	}
+	if len(unmarshalProxies.Proxy) > 1024 {
+		log.Errorln("[ID: %d] %s", u.ID, "Too many nodes at the same time, Please reduce nodes less than 1024.")
+		err = errors.New("too many nodes")
 		return
 	}
 	//proxiesTest(u)
