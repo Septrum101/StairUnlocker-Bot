@@ -2,5 +2,5 @@ converterAPI: https://api.dler.io
 maxConn: 256
 maxOnline: 10
 log_level: info
-internal: 5
-telegramToken:
+internal: 60
+telegramToken: YOUR_BOT_TOKEN

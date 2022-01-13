@@ -23,6 +23,18 @@ archives:
       windows: Windows
       386: i386
       amd64: x86_64
+    wrap_in_directory: true
+    files:
+      - config.example.yaml
+      - msyh.ttc
+      - README.md
+      - LICENSE
+      - dist/CHANGELOG.md
+      - src: StairUnlocker-Bot*
+        info:
+          owner: root
+          group: root
+          mode: 0755
 checksum:
   name_template: 'checksums.txt'
 snapshot:

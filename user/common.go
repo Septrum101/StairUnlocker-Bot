@@ -21,14 +21,14 @@ func (u *User) SendMessage(ctx string, isKeepSession bool) (resp tg.Message, err
 
 func (u *User) UserOutInternal(n int) bool {
 	internal := time.Duration(n)
-	if remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0)); remainTime > 0 {
+	if remainTime := internal*time.Second - time.Since(time.Unix(u.Data.LastCheck, 0)); remainTime > 0 {
 		if u.RefuseMessageID == 0 {
 			resp, _ := u.SendMessage(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)), true)
 			u.RefuseMessageID = resp.MessageID
 			go func() {
 				n := 5 * time.Second
 				for {
-					remainTime := internal*time.Minute - time.Since(time.Unix(u.Data.LastCheck, 0))
+					remainTime := internal*time.Second - time.Since(time.Unix(u.Data.LastCheck, 0))
 					if remainTime <= 0*time.Second {
 						_ = u.DeleteMessage(u.RefuseMessageID)
 						u.RefuseMessageID = 0
