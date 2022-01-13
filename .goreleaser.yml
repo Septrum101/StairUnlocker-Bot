@@ -29,7 +29,9 @@ archives:
       - msyh.ttc
       - README.md
       - LICENSE
-      - dist/CHANGELOG.md
+      - src: dist/CHANGELOG.md
+        dst: .
+        strip_parent: true
       - src: StairUnlocker-Bot*
         info:
           owner: root
