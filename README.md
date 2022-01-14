@@ -7,7 +7,7 @@ converterAPI: https://api.dler.io   # subconverter API 地址
 maxConn: 256                        # 节点检测同时最大连接数  
 maxOnline: 10                       # 最大同时在线用户 
 log_level: info                     # 日志等级: debug/info/warning/error/silent
-internal: 60                        # 检测间隔时间(单位: 分钟)
+internal: 60                        # 检测间隔时间(单位: 秒)
 telegramToken: YOUR TOKEN           # 机器人token 
 ````
 
