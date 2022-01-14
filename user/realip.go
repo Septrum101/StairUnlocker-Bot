@@ -16,6 +16,7 @@ func (u *User) RealIP(messageText string) {
 	u.IsCheck = true
 	checkFlag := make(chan bool)
 	defer func() {
+		u.Data.LastCheck = time.Now().Unix()
 		u.IsCheck = false
 		close(checkFlag)
 	}()
@@ -60,7 +61,6 @@ func (u *User) RealIP(messageText string) {
 		})
 		warpFile.Caption = fmt.Sprintf("%s\n%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", ipStatTitle, strings.Repeat("-", 25))
 		_, _ = u.Bot.Send(warpFile)
-		u.Data.LastCheck = time.Now().Unix()
 		_ = u.DeleteMessage(u.MessageID)
 	}
 }

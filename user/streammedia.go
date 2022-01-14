@@ -44,6 +44,7 @@ func (u *User) StreamMedia() {
 	var proxiesList []C.Proxy
 	checkFlag := make(chan bool)
 	defer func() {
+		u.Data.LastCheck = time.Now().Unix()
 		u.IsCheck = false
 		close(checkFlag)
 	}()
@@ -122,7 +123,6 @@ func (u *User) StreamMedia() {
 		})
 		wrapPNG.Caption = fmt.Sprintf("%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", telegramReport)
 		_, err = u.Bot.Send(wrapPNG)
-		u.Data.LastCheck = time.Now().Unix()
 		_ = u.DeleteMessage(u.MessageID)
 	}
 }
