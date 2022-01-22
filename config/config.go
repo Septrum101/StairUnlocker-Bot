@@ -3,11 +3,13 @@ package config
 import (
 	"flag"
 	"fmt"
-	C "github.com/Dreamacro/clash/constant"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"os"
 	"runtime"
+
+	"gopkg.in/yaml.v3"
+
+	C "github.com/Dreamacro/clash/constant"
 )
 
 func init() {

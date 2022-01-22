@@ -2,10 +2,11 @@ package user
 
 import (
 	"fmt"
-	"github.com/Dreamacro/clash/log"
-	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"strings"
 	"time"
+
+	"github.com/Dreamacro/clash/log"
+	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func (u *User) SendMessage(ctx string, isKeepSession bool) (resp tg.Message, err error) {

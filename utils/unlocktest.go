@@ -3,11 +3,12 @@ package utils
 import (
 	"context"
 	"fmt"
-	C "github.com/Dreamacro/clash/constant"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
+
+	C "github.com/Dreamacro/clash/constant"
 )
 
 func unlockTest(p CheckAdapter) (t uint16, r bool, err error) {

@@ -3,14 +3,16 @@ package user
 import (
 	"errors"
 	"fmt"
-	"github.com/Dreamacro/clash/adapter"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/log"
-	"github.com/thank243/StairUnlocker-Bot/config"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/Dreamacro/clash/adapter"
+	C "github.com/Dreamacro/clash/constant"
+	"github.com/Dreamacro/clash/log"
+
+	"github.com/thank243/StairUnlocker-Bot/config"
 )
 
 func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmarshalProxies *config.RawConfig, err error) {

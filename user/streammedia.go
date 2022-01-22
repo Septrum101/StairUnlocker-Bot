@@ -2,14 +2,16 @@ package user
 
 import (
 	"fmt"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/log"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/thank243/StairUnlocker-Bot/config"
-	"github.com/thank243/StairUnlocker-Bot/utils"
 	"sort"
 	"strings"
 	"time"
+
+	C "github.com/Dreamacro/clash/constant"
+	"github.com/Dreamacro/clash/log"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
+	"github.com/thank243/StairUnlocker-Bot/config"
+	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
 func statistic(streamMediaList *[]utils.CheckData) map[string]int {

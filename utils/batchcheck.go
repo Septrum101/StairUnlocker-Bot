@@ -2,10 +2,11 @@ package utils
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/Dreamacro/clash/common/batch"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
-	"strconv"
 )
 
 //BatchCheck : n int, to set ConcurrencyNum.

@@ -3,15 +3,17 @@ package user
 import (
 	"bytes"
 	"fmt"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/log"
-	"github.com/fogleman/gg"
-	"github.com/thank243/StairUnlocker-Bot/config"
-	"github.com/thank243/StairUnlocker-Bot/utils"
 	"image/png"
 	"sort"
 	"strings"
 	"time"
+
+	C "github.com/Dreamacro/clash/constant"
+	"github.com/Dreamacro/clash/log"
+	"github.com/fogleman/gg"
+
+	"github.com/thank243/StairUnlocker-Bot/config"
+	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
 const W = 1500

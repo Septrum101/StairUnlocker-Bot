@@ -2,14 +2,16 @@ package user
 
 import (
 	"fmt"
-	C "github.com/Dreamacro/clash/constant"
-	"github.com/Dreamacro/clash/log"
-	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/thank243/StairUnlocker-Bot/config"
-	"github.com/thank243/StairUnlocker-Bot/utils"
 	"net/url"
 	"strings"
 	"time"
+
+	C "github.com/Dreamacro/clash/constant"
+	"github.com/Dreamacro/clash/log"
+	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
+	"github.com/thank243/StairUnlocker-Bot/config"
+	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
 func (u *User) RealIP(messageText string) {

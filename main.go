@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+
 	"github.com/Dreamacro/clash/log"
+
 	"github.com/thank243/StairUnlocker-Bot/config"
 	"github.com/thank243/StairUnlocker-Bot/telegram"
 	"github.com/thank243/StairUnlocker-Bot/user"
