@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/Dreamacro/clash/common/batch"
 	C "github.com/Dreamacro/clash/constant"
@@ -40,7 +39,7 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockList []CheckData
 				ch <- 1
 				curr += <-ch
 				log.Debugln("(%d/%d) %s | %s Unlock", curr, total, p.Name(), p.CheckName)
-				streamMediaUnlockList = append(streamMediaUnlockList, CheckData{p.Name(), p.CheckName, strconv.Itoa(int(latency))})
+				streamMediaUnlockList = append(streamMediaUnlockList, CheckData{p.Name(), p.CheckName, latency})
 			} else {
 				ch <- 1
 				curr += <-ch

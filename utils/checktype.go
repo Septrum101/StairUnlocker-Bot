@@ -1,39 +1,36 @@
 package utils
 
 import (
-	"io"
-	"net/http"
-	"net/url"
 	"strings"
+
+	C "github.com/Dreamacro/clash/constant"
+	"github.com/go-resty/resty/v2"
 )
 
-func isUnlock(r *http.Response, testName string, req *http.Request) bool {
+func isUnlock(r *resty.Response, testName string, p C.Proxy) bool {
 	switch testName {
 	case "Netflix", "HBO", "Youtube Premium":
-		if r.StatusCode < 300 {
+		if r.StatusCode() < 300 {
 			return true
 		}
 	case "Disney Plus":
-		c := http.Client{}
-		req.Host = "global.edge.bamgrid.com"
-		req.URL, _ = url.Parse("https://global.edge.bamgrid.com/token")
-		resp, _ := c.Do(req)
-		if r.StatusCode < 300 && resp.StatusCode != 403 {
+		resp, err := getURLResp(p, "https://global.edge.bamgrid.com/token")
+		if err != nil {
+			return false
+		}
+		if r.StatusCode() < 300 && resp.StatusCode() != 403 {
 			return true
 		}
 	case "TVB":
-		ctx, _ := io.ReadAll(r.Body)
-		if strings.Contains(string(ctx), "HK") {
+		if strings.Contains(string(r.Body()), "HK") {
 			return true
 		}
 	case "Abema":
-		ctx, _ := io.ReadAll(r.Body)
-		if strings.Contains(string(ctx), "Country") {
+		if strings.Contains(string(r.Body()), "Country") {
 			return true
 		}
 	case "Bahamut":
-		ctx, _ := io.ReadAll(r.Body)
-		if strings.Contains(string(ctx), "animeSn") {
+		if strings.Contains(string(r.Body()), "animeSn") {
 			return true
 		}
 	}

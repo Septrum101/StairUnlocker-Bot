@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/Dreamacro/clash v1.9.1-0.20220115113321-9732efe93830
 	github.com/fogleman/gg v1.3.0
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )

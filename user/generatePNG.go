@@ -89,7 +89,7 @@ func generatePNG(streamMediaUnlockMap map[string][]string) (*bytes.Buffer, error
 		dc.DrawString(nameSort[i], 22, 77.5+float64(n)*25)
 		for idx := range streamMediaUnlockMap[nameSort[i]] {
 			if streamMediaUnlockMap[nameSort[i]][idx] != "" {
-				dc.DrawString(streamMediaUnlockMap[nameSort[i]][idx]+"ms", 5+getBeginFix(idx), 77.5+float64(n)*25)
+				dc.DrawString(streamMediaUnlockMap[nameSort[i]][idx], 5+getBeginFix(idx), 77.5+float64(n)*25)
 			} else {
 				dc.SetRGB(1, 0, 0)
 				str, strWidth = getStrWidth(dc, "None")
