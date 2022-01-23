@@ -3,13 +3,22 @@ package utils
 import (
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
-func isUnlock(r *http.Response, testName string) bool {
+func isUnlock(r *http.Response, testName string, req *http.Request) bool {
 	switch testName {
-	case "Netflix", "HBO", "Disney Plus", "Youtube Premium":
+	case "Netflix", "HBO", "Youtube Premium":
 		if r.StatusCode < 300 {
+			return true
+		}
+	case "Disney Plus":
+		c := http.Client{}
+		req.Host = "global.edge.bamgrid.com"
+		req.URL, _ = url.Parse("https://global.edge.bamgrid.com/token")
+		resp, _ := c.Do(req)
+		if r.StatusCode < 300 && resp.StatusCode != 403 {
 			return true
 		}
 	case "TVB":
