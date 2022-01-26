@@ -2,9 +2,8 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
+	"github.com/go-resty/resty/v2"
 	"net"
 	"net/http"
 	"sort"
@@ -32,9 +31,11 @@ type geoIP struct {
 	*/
 }
 
-func endIPTest(p C.Proxy, url string) (ipInfo geoIP, err error) {
+func endIPTest(p C.Proxy) (ipInfo geoIP, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	url := "https://api.ip.sb/geoip"
 	addr, err := urlToMetadata(url)
 	if err != nil {
 		return
@@ -44,6 +45,7 @@ func endIPTest(p C.Proxy, url string) (ipInfo geoIP, err error) {
 	if err != nil {
 		return
 	}
+
 	defer func(instance C.Conn) {
 		err := instance.Close()
 		if err != nil {
@@ -51,39 +53,12 @@ func endIPTest(p C.Proxy, url string) (ipInfo geoIP, err error) {
 		}
 	}(instance)
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return
-	}
-	req.Header.Set("User-Agent", "curl")
-	req = req.WithContext(ctx)
-
-	transport := &http.Transport{
-		DialContext: func(context.Context, string, string) (net.Conn, error) {
-			return instance, nil
-		},
-		// from http.DefaultTransport
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
-
-	client := http.Client{
-		Transport: transport,
-	}
-	defer client.CloseIdleConnections()
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-	buf, _ := io.ReadAll(resp.Body)
-	err = resp.Body.Close()
-	if err != nil {
-		return
-	}
-	_ = json.Unmarshal(buf, &ipInfo)
+	_, err = resty.New().
+		SetTransport(&http.Transport{
+			DialContext: func(context.Context, string, string) (net.Conn, error) {
+				return instance, err
+			}}).
+		SetCloseConnection(true).SetHeader("User-Agent", "curl").R().SetContext(ctx).SetResult(&ipInfo).Get(url)
 	return
 }
 
@@ -91,27 +66,9 @@ func entryIPTest(ip string) (ipInfo geoIP, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	url := "https://api.ip.sb/geoip/" + ip
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return
-	}
-	req.Header.Set("User-Agent", "curl")
-	req = req.WithContext(ctx)
-
-	client := http.Client{}
-	defer client.CloseIdleConnections()
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-	buf, _ := io.ReadAll(resp.Body)
-	err = resp.Body.Close()
-	if err != nil {
-		return
-	}
-	_ = json.Unmarshal(buf, &ipInfo)
+	_, err = resty.New().SetHeader("User-Agent", "curl").
+		SetCloseConnection(true).R().SetContext(ctx).SetResult(&ipInfo).
+		Get(fmt.Sprintf("https://api.ip.sb/geoip/%s", ip))
 	return
 }
 
@@ -140,7 +97,7 @@ func GetIPList(proxiesList []C.Proxy, n int) ([]string, []string) {
 	for i := range proxiesList {
 		p := proxiesList[i]
 		b.Go(p.Name(), func() (interface{}, error) {
-			resp, err := endIPTest(p, "https://api.ip.sb/geoip")
+			resp, err := endIPTest(p)
 			if err != nil {
 				return nil, nil
 			}
