@@ -109,7 +109,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 		case update.Message.Text == "/version":
 			todayUser := 0
 			for _, v := range *userMap {
-				if time.Now().Unix()-v.Data.LastCheck < int64(24*time.Hour.Seconds()) {
+				if time.Now().Unix() - v.Data.LastCheck < int64(24*time.Hour.Seconds()) {
 					todayUser++
 				}
 			}
