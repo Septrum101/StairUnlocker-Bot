@@ -3,14 +3,12 @@ package user
 import (
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/Dreamacro/clash/adapter"
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
+	"github.com/go-resty/resty/v2"
 
 	"github.com/thank243/StairUnlocker-Bot/config"
 )
@@ -56,29 +54,16 @@ func (u *User) generateProxies(apiURL string) (proxies map[string]C.Proxy, unmar
 }
 
 func (u *User) convertAPI(apiURL string) (re []byte, err error) {
-	baseUrl, err := url.Parse(apiURL)
-	baseUrl.Path += "sub"
-	params := url.Values{}
-	params.Add("target", "clash")
-	params.Add("list", strconv.FormatBool(true))
-	params.Add("emoji", strconv.FormatBool(false))
-	params.Add("url", u.Data.SubURL)
-	baseUrl.RawQuery = params.Encode()
-	client := http.Client{}
-	req, _ := http.NewRequest(http.MethodGet, baseUrl.String(), nil)
-	req.Header.Set("User-Agent", "ClashforWindows/0.19.5")
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			return
-		}
-	}(resp.Body)
-	re, _ = io.ReadAll(resp.Body)
-	if resp.StatusCode != 200 {
+	resp, err := resty.New().SetHeader("User-Agent", "ClashforWindows/0.19.6").SetRetryCount(3).
+		SetQueryParams(map[string]string{
+			"target":      "clash",
+			"append_type": strconv.FormatBool(true),
+			"list":        strconv.FormatBool(true),
+			"emoji":       strconv.FormatBool(false),
+			"url":         u.Data.SubURL}).R().Get(fmt.Sprintf("%s/sub", apiURL))
+
+	re = resp.Body()
+	if resp.StatusCode() != 200 {
 		log.Errorln("[ID: %d] %s", u.ID, re)
 		err = errors.New(string(re))
 		return
