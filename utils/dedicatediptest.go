@@ -3,15 +3,17 @@ package utils
 import (
 	"context"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"net"
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/Dreamacro/clash/common/batch"
 	C "github.com/Dreamacro/clash/constant"
+	"github.com/Dreamacro/clash/log"
+	"github.com/go-resty/resty/v2"
+	"github.com/panjf2000/ants/v2"
 )
 
 type geoIP struct {
@@ -47,7 +49,7 @@ func endIPTest(p C.Proxy) (ipInfo geoIP, err error) {
 	}
 
 	defer func(instance C.Conn) {
-		err := instance.Close()
+		err = instance.Close()
 		if err != nil {
 			return
 		}
@@ -58,7 +60,8 @@ func endIPTest(p C.Proxy) (ipInfo geoIP, err error) {
 			DialContext: func(context.Context, string, string) (net.Conn, error) {
 				return instance, err
 			}}).
-		SetCloseConnection(true).SetHeader("User-Agent", "curl").R().SetContext(ctx).SetResult(&ipInfo).Get(url)
+		SetCloseConnection(true).SetHeader("User-Agent", "curl").
+		R().SetContext(ctx).SetResult(&ipInfo).Get(url)
 	return
 }
 
@@ -91,27 +94,41 @@ func deDuplication(list []string) []string {
 }
 
 func GetIPList(proxiesList []C.Proxy, n int) ([]string, []string) {
-	b, _ := batch.New(context.Background(), batch.WithConcurrencyNum(n))
-	var endIPList []string
-	var entryIPList []string
-	for i := range proxiesList {
-		p := proxiesList[i]
-		b.Go(p.Name(), func() (interface{}, error) {
-			resp, err := endIPTest(p)
-			if err != nil {
-				return nil, nil
-			}
+	defer ants.Release()
+	var (
+		wg          sync.WaitGroup
+		endIPList   []string
+		entryIPList []string
+	)
+
+	pool, err := ants.NewPoolWithFunc(n, func(i interface{}) {
+		p := i.(C.Proxy)
+		resp, _ := endIPTest(p)
+		if resp.Ip != "" {
 			endIPList = append(endIPList, fmt.Sprintf("%s - %s, ISP: %s", resp.Ip, resp.Country, resp.Isp))
-			for i := range entryIP(p.Addr()) {
-				resp, err = entryIPTest(entryIP(p.Addr())[i])
-				if err != nil {
-					return nil, nil
-				}
+		}
+		for idx := range entryIP(p.Addr()) {
+			resp, _ = entryIPTest(entryIP(p.Addr())[idx])
+			if resp.Ip != "" {
 				entryIPList = append(entryIPList, fmt.Sprintf("%s - %s, ISP: %s", resp.Ip, resp.Country, resp.Isp))
 			}
-			return nil, nil
-		})
+		}
+		wg.Done()
+	})
+	defer pool.Release()
+	if err != nil {
+		log.Errorln(err.Error())
+		return nil, nil
 	}
-	b.Wait()
+
+	for _, i := range proxiesList {
+		wg.Add(1)
+		err = pool.Invoke(i)
+		if err != nil {
+			log.Errorln(err.Error())
+			return nil, nil
+		}
+	}
+	wg.Wait()
 	return deDuplication(entryIPList), deDuplication(endIPList)
 }
