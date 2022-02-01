@@ -7,7 +7,7 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-func isUnlock(r *resty.Response, testName string, p C.Proxy) bool {
+func isUnlock(r *resty.Response, testName string, p *C.Proxy) bool {
 	switch testName {
 	case "Netflix", "HBO", "Youtube Premium":
 		if r.StatusCode() < 300 {

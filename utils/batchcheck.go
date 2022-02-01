@@ -10,7 +10,6 @@ import (
 
 //BatchCheck : n int, to set ConcurrencyNum.
 func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockList []CheckData) {
-	defer ants.Release()
 	var (
 		wg       sync.WaitGroup
 		wrapList []CheckAdapter
@@ -30,7 +29,7 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockList []CheckData
 	//initial pool
 	pool, err := ants.NewPoolWithFunc(n, func(i interface{}) {
 		p := i.(CheckAdapter)
-		latency, resp, err := unlockTest(p)
+		latency, resp, err := unlockTest(&p)
 		if err != nil {
 			curr++
 			log.Debugln("(%d/%d) %s : %s", curr, total, p.Name(), err.Error())

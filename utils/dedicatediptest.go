@@ -94,7 +94,6 @@ func deDuplication(list []string) []string {
 }
 
 func GetIPList(proxiesList []C.Proxy, n int) ([]string, []string) {
-	defer ants.Release()
 	var (
 		wg          sync.WaitGroup
 		endIPList   []string

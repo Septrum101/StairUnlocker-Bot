@@ -12,14 +12,14 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-func unlockTest(p CheckAdapter) (t string, res bool, err error) {
+func unlockTest(p *CheckAdapter) (t string, res bool, err error) {
 	start := time.Now()
-	resp, err := getURLResp(p.Proxy, p.CheckURL)
+	resp, err := getURLResp(&p.Proxy, p.CheckURL)
 	if err != nil {
 		return
 	}
 	t = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
-	res = isUnlock(resp, p.CheckName, p.Proxy)
+	res = isUnlock(resp, p.CheckName, &p.Proxy)
 	return
 }
 
@@ -51,7 +51,7 @@ func urlToMetadata(rawURL string) (addr C.Metadata, err error) {
 	return
 }
 
-func getURLResp(p C.Proxy, url string) (resp *resty.Response, err error) {
+func getURLResp(p *C.Proxy, url string) (resp *resty.Response, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -60,7 +60,7 @@ func getURLResp(p C.Proxy, url string) (resp *resty.Response, err error) {
 		return
 	}
 
-	instance, err := p.DialContext(ctx, &addr)
+	instance, err := (*p).DialContext(ctx, &addr)
 	if err != nil {
 		return
 	}
