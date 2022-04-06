@@ -17,27 +17,27 @@ import (
 )
 
 type geoIP struct {
-	Organization string `json:"organization"`
-	Isp          string `json:"isp"`
-	Country      string `json:"country"`
-	Ip           string `json:"ip"`
-	/*
-		Longitude       float64 `json:"longitude"`
-		Timezone        string  `json:"timezone"`
-		Offset          int     `json:"offset"`
-		Asn             int     `json:"asn"`
-		AsnOrganization string  `json:"asn_organization"`
-		Latitude        float64 `json:"latitude"`
-		ContinentCode   string  `json:"continent_code"`
-		CountryCode     string  `json:"country_code"`
-	*/
+	Status       string  `json:"status"`
+	Country      string  `json:"country"`
+	CountryCode  string  `json:"countryCode"`
+	Region       string  `json:"region"`
+	RegionName   string  `json:"regionName"`
+	City         string  `json:"city"`
+	Zip          string  `json:"zip"`
+	Lat          float64 `json:"lat"`
+	Lon          float64 `json:"lon"`
+	Timezone     string  `json:"timezone"`
+	Isp          string  `json:"isp"`
+	Organization string  `json:"org"`
+	As           string  `json:"as"`
+	Ip           string  `json:"query"`
 }
 
 func endIPTest(p C.Proxy) (ipInfo geoIP, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	url := "https://api.ip.sb/geoip"
+	url := "http://ip-api.com/json"
 	addr, err := urlToMetadata(url)
 	if err != nil {
 		return
@@ -71,7 +71,7 @@ func entryIPTest(ip string) (ipInfo geoIP, err error) {
 
 	_, err = resty.New().SetHeader("User-Agent", "curl").
 		SetCloseConnection(true).R().SetContext(ctx).SetResult(&ipInfo).
-		Get(fmt.Sprintf("https://api.ip.sb/geoip/%s", ip))
+		Get(fmt.Sprintf("http://ip-api.com/json/%s", ip))
 	return
 }
 
