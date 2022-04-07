@@ -49,9 +49,9 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamMediaUnlockList []CheckData
 		return
 	}
 
-	for _, i := range wrapList {
+	for i := range wrapList {
 		wg.Add(1)
-		err = pool.Invoke(i)
+		err = pool.Invoke(wrapList[i])
 		if err != nil {
 			log.Errorln(err.Error())
 			return

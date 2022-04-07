@@ -120,9 +120,9 @@ func GetIPList(proxiesList []C.Proxy, n int) ([]string, []string) {
 		return nil, nil
 	}
 
-	for _, i := range proxiesList {
+	for i := range proxiesList {
 		wg.Add(1)
-		err = pool.Invoke(i)
+		err = pool.Invoke(proxiesList[i])
 		if err != nil {
 			log.Errorln(err.Error())
 			return nil, nil
