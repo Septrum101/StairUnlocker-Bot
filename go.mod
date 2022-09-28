@@ -1,6 +1,6 @@
 module github.com/thank243/StairUnlocker-Bot
 
-go 1.18
+go 1.19
 
 require (
 	github.com/Dreamacro/clash v1.10.1-0.20220320033218-8c9e0b388437

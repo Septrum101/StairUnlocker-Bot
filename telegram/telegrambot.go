@@ -19,7 +19,7 @@ func Updates(buf *chan *user.User, userMap *map[int64]*user.User) (err error) {
 	start := time.Now()
 	bot, err := tgBot.NewBotAPI(config.BotCfg.TelegramToken)
 	if err != nil {
-		panic(err)
+		log.Fatalln("%v", err)
 	}
 	if config.BotCfg.LogLevel == 0 {
 		bot.Debug = true
