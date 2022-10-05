@@ -12,17 +12,6 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-func unlockTest(p *CheckAdapter) (t string, res bool, err error) {
-	start := time.Now()
-	resp, err := getURLResp(&p.Proxy, p.CheckURL)
-	if err != nil {
-		return
-	}
-	t = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
-	res = isUnlock(resp, p.CheckName, &p.Proxy)
-	return
-}
-
 func urlToMetadata(rawURL string) (addr C.Metadata, err error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {

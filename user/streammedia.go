@@ -14,28 +14,12 @@ import (
 	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
-func statistic(streamMediaList *[]utils.CheckData) map[string]int {
+func statistic(streamMediaList *[]utils.StreamData) map[string]int {
 	statMap := make(map[string]int)
-	// initial 0 for each stream media
-	for i := range utils.GetCheckParams() {
-		statMap[utils.GetCheckParams()[i].CheckName] = 0
-	}
 	for i := range *streamMediaList {
-		switch (*streamMediaList)[i].StreamMedia {
-		case "Netflix":
-			statMap["Netflix"]++
-		case "HBO":
-			statMap["HBO"]++
-		case "Disney Plus":
-			statMap["Disney Plus"]++
-		case "Youtube Premium":
-			statMap["Youtube Premium"]++
-		case "TVB":
-			statMap["TVB"]++
-		case "Abema":
-			statMap["Abema"]++
-		case "Bahamut":
-			statMap["Bahamut"]++
+		statMap[(*streamMediaList)[i].Name]++
+		if !(*streamMediaList)[i].Unlock {
+			statMap[(*streamMediaList)[i].Name]--
 		}
 	}
 	return statMap
@@ -75,11 +59,9 @@ func (u *User) StreamMedia() {
 		report := fmt.Sprintf("Total %d nodes, Duration: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 
 		var nameList []string
-		i := 0
 		statisticMap := statistic(&unlockList)
 		for k := range statisticMap {
 			nameList = append(nameList, k)
-			i++
 		}
 		sort.Strings(nameList)
 		var finalStr string
@@ -91,30 +73,8 @@ func (u *User) StreamMedia() {
 		u.Data.CheckInfo = telegramReport
 		log.Warnln("[ID: %d] %s", u.ID, report)
 		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
-		unlockMap := make(map[string][]string)
-		for i := range proxiesList {
-			unlockMap[proxiesList[i].Name()] = make([]string, 7)
-		}
-		for idx := range unlockList {
-			switch unlockList[idx].StreamMedia {
-			case "Netflix":
-				unlockMap[unlockList[idx].ProxyName][0] = unlockList[idx].Latency
-			case "HBO":
-				unlockMap[unlockList[idx].ProxyName][1] = unlockList[idx].Latency
-			case "Disney Plus":
-				unlockMap[unlockList[idx].ProxyName][2] = unlockList[idx].Latency
-			case "Youtube Premium":
-				unlockMap[unlockList[idx].ProxyName][3] = unlockList[idx].Latency
-			case "TVB":
-				unlockMap[unlockList[idx].ProxyName][4] = unlockList[idx].Latency
-			case "Abema":
-				unlockMap[unlockList[idx].ProxyName][5] = unlockList[idx].Latency
-			case "Bahamut":
-				unlockMap[unlockList[idx].ProxyName][6] = unlockList[idx].Latency
-			}
-		}
 
-		buffer, err := generatePNG(unlockMap)
+		buffer, err := generatePNG(unlockList, nameList)
 		if err != nil {
 			return
 		}
