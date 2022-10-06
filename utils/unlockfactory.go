@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -16,6 +17,19 @@ type unlockFactory interface {
 	create() absStream
 }
 
+func NewStreamList() []absStream {
+	return []absStream{
+		unlockFactory(new(netflix)).create(),
+		unlockFactory(new(hbo)).create(),
+		unlockFactory(new(youtube)).create(),
+		unlockFactory(new(disney)).create(),
+		unlockFactory(new(tvb)).create(),
+		unlockFactory(new(abema)).create(),
+		unlockFactory(new(bahamut)).create(),
+	}
+}
+
+// netflix
 type netflix struct {
 }
 
@@ -38,28 +52,7 @@ func (n *netflix) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	return
 }
 
-type hbo struct {
-}
-
-func (h *hbo) create() absStream {
-	return new(hbo)
-}
-
-func (h *hbo) isUnlock(p *C.Proxy) (s StreamData, err error) {
-	s.Name = "HBO"
-	s.ProxyName = (*p).Name()
-	start := time.Now()
-	resp, err := getURLResp(p, "https://www.hbomax.com")
-	if err != nil {
-		return
-	}
-	if resp.StatusCode() < 300 {
-		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
-		s.Unlock = true
-	}
-	return
-}
-
+// youtube
 type youtube struct {
 }
 
@@ -82,6 +75,7 @@ func (y *youtube) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	return
 }
 
+// disney
 type disney struct {
 }
 
@@ -104,6 +98,31 @@ func (d *disney) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	return
 }
 
+// hbo
+type hbo struct {
+}
+
+func (h *hbo) create() absStream {
+	return new(hbo)
+}
+
+func (h *hbo) isUnlock(p *C.Proxy) (s StreamData, err error) {
+	s.Name = "HBO"
+	s.ProxyName = (*p).Name()
+	start := time.Now()
+	resp, err := getURLResp(p, "https://www.hbomax.com")
+	if err != nil {
+		return
+	}
+
+	if !strings.Contains(resp.RawResponse.Request.URL.Path, "geo") {
+		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
+		s.Unlock = true
+	}
+	return
+}
+
+// tvb
 type tvb struct {
 }
 
@@ -115,17 +134,21 @@ func (t *tvb) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	s.Name = "TVB"
 	s.ProxyName = (*p).Name()
 	start := time.Now()
-	resp, err := getURLResp(p, "https://www.mytvsuper.com/iptest.php")
+	resp, err := getURLResp(p, "https://www.mytvsuper.com/api/auth/getSession/self")
 	if err != nil {
 		return
 	}
-	if strings.Contains(resp.String(), "HK") {
+	r := make(map[string]int)
+	json.Unmarshal(resp.Body(), &r)
+
+	if r["region"] == 1 {
 		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 		s.Unlock = true
 	}
 	return
 }
 
+//abema
 type abema struct {
 }
 
@@ -148,6 +171,7 @@ func (a *abema) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	return
 }
 
+// bahamut
 type bahamut struct {
 }
 

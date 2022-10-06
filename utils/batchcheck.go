@@ -16,15 +16,7 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamDataList []StreamData) {
 	var (
 		wg sync.WaitGroup
 	)
-	streamList := []absStream{
-		unlockFactory(new(netflix)).create(),
-		unlockFactory(new(hbo)).create(),
-		unlockFactory(new(youtube)).create(),
-		unlockFactory(new(disney)).create(),
-		unlockFactory(new(tvb)).create(),
-		unlockFactory(new(abema)).create(),
-		unlockFactory(new(bahamut)).create(),
-	}
+	streamList := NewStreamList()
 	// prefix for node name on log.
 	curr, total := int32(0), len(proxiesList)*len(streamList)
 	//initial pool
