@@ -13,36 +13,42 @@ var l sync.RWMutex
 
 //BatchCheck : n int, to set ConcurrencyNum.
 func BatchCheck(proxiesList []C.Proxy, n int) (streamDataList []StreamData) {
+	type combineProxy struct {
+		proxy  C.Proxy
+		stream absStream
+	}
+
 	var (
 		wg sync.WaitGroup
+		cp []combineProxy
 	)
 	streamList := NewStreamList()
+
+	for i := range proxiesList {
+		for ii := range streamList {
+			cp = append(cp, combineProxy{
+				proxy:  proxiesList[i],
+				stream: streamList[ii],
+			})
+		}
+	}
 	// prefix for node name on log.
-	curr, total := int32(0), len(proxiesList)*len(streamList)
+	curr, total := int32(0), len(cp)
 	//initial pool
 	pool, err := ants.NewPoolWithFunc(n, func(i interface{}) {
-		p := i.(C.Proxy)
-		for ii := range streamList {
-			wg.Add(1)
-			j := ii
-			go func() {
-				result, err := streamList[j].isUnlock(&p)
-				if err != nil {
-					atomic.AddInt32(&curr, 1)
-					log.Debugln("(%d/%d) %s : %s", curr, total, p.Name(), err.Error())
-				} else if result.Unlock {
-					atomic.AddInt32(&curr, 1)
-					log.Debugln("(%d/%d) %s | %s Unlock", curr, total, p.Name(), result.Name)
-				} else {
-					atomic.AddInt32(&curr, 1)
-					log.Debugln("(%d/%d) %s | %s None", curr, total, p.Name(), result.Name)
-				}
-				l.Lock()
-				streamDataList = append(streamDataList, result)
-				l.Unlock()
-				wg.Done()
-			}()
+		c := i.(combineProxy)
+		result, err := c.stream.isUnlock(&c.proxy)
+		atomic.AddInt32(&curr, 1)
+		if err != nil {
+			log.Debugln("(%d/%d) %s : %s", atomic.LoadInt32(&curr), total, c.proxy.Name(), err.Error())
+		} else if result.Unlock {
+			log.Debugln("(%d/%d) %s | %s Unlock", atomic.LoadInt32(&curr), total, c.proxy.Name(), result.Name)
+		} else {
+			log.Debugln("(%d/%d) %s | %s None", atomic.LoadInt32(&curr), total, c.proxy.Name(), result.Name)
 		}
+		l.Lock()
+		streamDataList = append(streamDataList, result)
+		l.Unlock()
 		wg.Done()
 	})
 	defer pool.Release()
@@ -51,9 +57,9 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamDataList []StreamData) {
 		return
 	}
 
-	for i := range proxiesList {
+	for i := range cp {
 		wg.Add(1)
-		err = pool.Invoke(proxiesList[i])
+		err = pool.Invoke(cp[i])
 		if err != nil {
 			log.Errorln(err.Error())
 			return

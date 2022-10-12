@@ -46,15 +46,10 @@ func (u *User) StreamMedia() {
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
 	}
-	//	Max Connection at the same time.
-	connNum := config.BotCfg.MaxConn
-	if i := len(proxiesList); i < connNum {
-		connNum = i
-	}
 	// Must have valid node.
 	if len(proxiesList) > 0 {
 		start := time.Now()
-		unlockList := utils.BatchCheck(proxiesList, connNum)
+		unlockList := utils.BatchCheck(proxiesList, config.BotCfg.MaxConn)
 		checkFlag <- true
 		report := fmt.Sprintf("Total %d nodes, Duration: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 

@@ -42,11 +42,11 @@ func (n *netflix) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	s.ProxyName = (*p).Name()
 	start := time.Now()
 	resp, err := getURLResp(p, "https://www.netflix.com/title/70143836")
+	s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 	if err != nil {
 		return
 	}
 	if resp.StatusCode() < 300 {
-		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 		s.Unlock = true
 	}
 	return
@@ -65,11 +65,11 @@ func (y *youtube) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	s.ProxyName = (*p).Name()
 	start := time.Now()
 	resp, err := getURLResp(p, "https://music.youtube.com")
+	s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 	if err != nil {
 		return
 	}
 	if resp.StatusCode() < 300 {
-		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 		s.Unlock = true
 	}
 	return
@@ -88,11 +88,11 @@ func (d *disney) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	s.ProxyName = (*p).Name()
 	start := time.Now()
 	resp, err := getURLResp(p, "https://www.disneyplus.com")
+	s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 	if err != nil {
 		return
 	}
 	if resp.StatusCode() < 300 {
-		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 		s.Unlock = true
 	}
 	return
@@ -111,12 +111,11 @@ func (h *hbo) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	s.ProxyName = (*p).Name()
 	start := time.Now()
 	resp, err := getURLResp(p, "https://www.hbomax.com")
+	s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 	if err != nil {
 		return
 	}
-
 	if !strings.Contains(resp.RawResponse.Request.URL.Path, "geo") {
-		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 		s.Unlock = true
 	}
 	return
@@ -135,6 +134,7 @@ func (t *tvb) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	s.ProxyName = (*p).Name()
 	start := time.Now()
 	resp, err := getURLResp(p, "https://www.mytvsuper.com/api/auth/getSession/self")
+	s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 	if err != nil {
 		return
 	}
@@ -142,7 +142,6 @@ func (t *tvb) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	json.Unmarshal(resp.Body(), &r)
 
 	if r["region"] == 1 {
-		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 		s.Unlock = true
 	}
 	return
@@ -161,11 +160,11 @@ func (a *abema) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	s.ProxyName = (*p).Name()
 	start := time.Now()
 	resp, err := getURLResp(p, "https://api.abema.io/v1/ip/check?device=android")
+	s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 	if err != nil {
 		return
 	}
 	if strings.Contains(resp.String(), "Country") {
-		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 		s.Unlock = true
 	}
 	return
@@ -184,11 +183,11 @@ func (b *bahamut) isUnlock(p *C.Proxy) (s StreamData, err error) {
 	s.ProxyName = (*p).Name()
 	start := time.Now()
 	resp, err := getURLResp(p, "https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=14667")
+	s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 	if err != nil {
 		return
 	}
 	if strings.Contains(resp.String(), "animeSn") {
-		s.Latency = fmt.Sprintf("%dms", time.Since(start)/time.Millisecond)
 		s.Unlock = true
 	}
 	return
