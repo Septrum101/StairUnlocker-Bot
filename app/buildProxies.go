@@ -16,7 +16,6 @@ import (
 
 func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err error) {
 	log.Infoln("[ID: %d] Converting from API server.", u.ID)
-	u.SendMessage("Converting from API server.")
 
 	resp, err := convertAPI(subUrl)
 	if err != nil {

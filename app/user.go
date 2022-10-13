@@ -4,28 +4,30 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
 	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"go.uber.org/atomic"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
 	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
 type User struct {
-	ID              int64
-	message         chan *tg.Message
-	s               *Server
-	editMsgID       int
-	IsCheck         bool
-	RefuseMessageID int
-	Data            struct {
-		LastCheck int64
-		SubURL    string
-		CheckInfo string
+	ID             int64
+	message        chan *tg.Message
+	s              *Server
+	isCheck        atomic.Bool
+	countDownMsgID atomic.Int64
+	data           struct {
+		lastCheck   atomic.Int64
+		subURL      atomic.String
+		checkedInfo atomic.String
 	}
+	l sync.RWMutex
 }
 
 func NewUser(server *Server, up *tg.Update) *User {
@@ -56,16 +58,12 @@ func (u *User) listenMessage() {
 			if !u.validator() {
 				continue
 			}
-			if err := u.cmdURL(msg.Text); err != nil {
-				continue
-			}
+			go u.cmdURL(msg.Text)
 		case strings.HasPrefix(msg.Text, "/ip"):
 			if !u.validator() {
 				continue
 			}
-			if err := u.cmdIP(msg.Text); err != nil {
-				continue
-			}
+			go u.cmdIP(msg.Text)
 		default:
 			u.SendMessage("Invalid command")
 		}
@@ -84,17 +82,17 @@ func (u *User) cmdStart() {
 }
 
 func (u *User) cmdStat() {
-	if u.Data.CheckInfo == "" {
+	if u.data.checkedInfo.Load() == "" {
 		u.SendMessage("Cannot find status information. Please use [/url subURL] command once.")
 	} else {
-		u.SendMessage(u.s.userMap[u.ID].Data.CheckInfo)
+		u.SendMessage(u.s.userMap[u.ID].data.checkedInfo.Load())
 	}
 }
 
 func (u *User) cmdVersion() {
 	todayUser := 0
 	for _, v := range u.s.userMap {
-		if time.Now().Unix()-v.Data.LastCheck < int64(24*time.Hour.Seconds()) {
+		if time.Now().Unix()-v.data.lastCheck.Load() < int64(24*time.Hour.Seconds()) {
 			todayUser++
 		}
 	}
@@ -109,7 +107,7 @@ func (u *User) validator() bool {
 		return false
 	}
 	// forbid double-checking
-	if u.IsCheck {
+	if u.isCheck.Load() {
 		u.SendMessage("Duplication, Previous testing is not completed! Please try again later.")
 		return false
 	}
@@ -119,7 +117,7 @@ func (u *User) validator() bool {
 
 func (u *User) cmdURL(msg string) error {
 	subURL, err := url.Parse(strings.TrimSpace(strings.ReplaceAll(msg, "/url", "")))
-	if err != nil || (u.Data.SubURL == "" && subURL.String() == "") {
+	if err != nil || (u.data.subURL.Load() == "" && subURL.String() == "") {
 		u.SendMessage("Invalid URL. Please inspect your subURL or use [/url subURL] command once.")
 		return err
 	}
@@ -127,7 +125,7 @@ func (u *User) cmdURL(msg string) error {
 	if u.UserOutInternal() {
 		su := subURL.String()
 		if su == "" {
-			su = u.Data.SubURL
+			su = u.data.subURL.Load()
 		}
 		u.streamMedia(su)
 	}
@@ -137,7 +135,7 @@ func (u *User) cmdURL(msg string) error {
 
 func (u *User) cmdIP(msg string) error {
 	subURL, err := url.Parse(strings.TrimSpace(strings.ReplaceAll(msg, "/ip", "")))
-	if err != nil || (u.Data.SubURL == "" && subURL.String() == "") {
+	if err != nil || (u.data.subURL.Load() == "" && subURL.String() == "") {
 		u.SendMessage("Invalid URL. Please inspect your subURL or use [/ip subURL] command once.")
 		return err
 	}
@@ -145,7 +143,7 @@ func (u *User) cmdIP(msg string) error {
 	if u.UserOutInternal() {
 		su := subURL.String()
 		if su == "" {
-			su = u.Data.SubURL
+			su = u.data.subURL.Load()
 		}
 		u.realIP(su)
 	}
@@ -158,28 +156,27 @@ func (u *User) SendMessage(msg string) (resp tg.Message, err error) {
 	if err != nil {
 		return
 	}
-	u.editMsgID = resp.MessageID
 	return
 }
 
 func (u *User) UserOutInternal() bool {
-	internal := time.Duration(model.BotCfg.Internal)
-	if remainTime := internal*time.Second - time.Since(time.Unix(u.Data.LastCheck, 0)); remainTime > 0 {
-		if u.RefuseMessageID == 0 {
-			resp, _ := u.SendMessage(fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
-			u.RefuseMessageID = resp.MessageID
+	remainTime := float64(model.BotCfg.Internal) - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
+	if remainTime > 0 {
+		if u.countDownMsgID.Load() == 0 {
+			resp, _ := u.SendMessage(fmt.Sprintf("Please try again after %ds.", int(remainTime)))
+			u.countDownMsgID.Store(int64(resp.MessageID))
 			go func() {
 				n := 5 * time.Second
 				for {
-					remainTime := internal*time.Second - time.Since(time.Unix(u.Data.LastCheck, 0))
-					if remainTime <= 0*time.Second {
-						_ = u.DeleteMessage(u.RefuseMessageID)
-						u.RefuseMessageID = 0
+					remainTime := float64(model.BotCfg.Internal) - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
+					if remainTime <= 0 {
+						_ = u.DeleteMessage(int(u.countDownMsgID.Load()))
+						u.countDownMsgID.Store(0)
 						return
 					} else {
-						_ = u.EditMessage(u.RefuseMessageID, fmt.Sprintf("Please try again after %s.", remainTime.Round(time.Second)))
+						_ = u.EditMessage(int(u.countDownMsgID.Load()), fmt.Sprintf("Please try again after %ds.", int(remainTime)))
 					}
-					if remainTime <= 10*time.Second {
+					if remainTime <= 10 {
 						n = 500 * time.Millisecond
 					}
 					time.Sleep(n)
@@ -201,14 +198,16 @@ func (u *User) DeleteMessage(msgID int) error {
 }
 
 func (u *User) EditMessage(msgID int, text string) error {
+	u.l.Lock()
 	_, err := u.s.Bot.Send(tg.NewEditMessageText(u.ID, msgID, text))
+	u.l.Unlock()
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (u *User) loading(info string, checkFlag chan bool) {
+func (u *User) loading(info string, checkFlag chan bool, msgID int) {
 	log.Debugln("[ID: %d] %s", u.ID, info)
 	count := 0
 	for {
@@ -220,7 +219,7 @@ func (u *User) loading(info string, checkFlag chan bool) {
 			if count > 5 {
 				count = 0
 			}
-			u.EditMessage(u.editMsgID, fmt.Sprintf("%s%s", info, strings.Repeat(".", count)))
+			u.EditMessage(msgID, fmt.Sprintf("%s%s", info, strings.Repeat(".", count)))
 			time.Sleep(500 * time.Millisecond)
 		}
 	}
