@@ -7,6 +7,7 @@ import (
 
 	"github.com/Dreamacro/clash/log"
 	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"go.uber.org/atomic"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
 )
@@ -17,6 +18,7 @@ type Server struct {
 	StartTime      time.Time
 	Bot            *tgBot.BotAPI
 	l              sync.RWMutex
+	runningTask    atomic.Int64
 }
 
 func NewServer() (*Server, error) {

@@ -2,18 +2,15 @@ package app
 
 import (
 	"fmt"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
 
-	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
 	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/atomic"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
-	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
 type User struct {
@@ -55,15 +52,13 @@ func (u *User) listenMessage() {
 		case msg.Text == "/version":
 			u.cmdVersion()
 		case strings.HasPrefix(msg.Text, "/url"):
-			if !u.validator() {
-				continue
+			if u.validator() {
+				go u.cmdURL(msg.Text)
 			}
-			go u.cmdURL(msg.Text)
 		case strings.HasPrefix(msg.Text, "/ip"):
-			if !u.validator() {
-				continue
+			if u.validator() {
+				go u.cmdIP(msg.Text)
 			}
-			go u.cmdIP(msg.Text)
 		default:
 			u.SendMessage("Invalid command")
 		}
@@ -71,38 +66,8 @@ func (u *User) listenMessage() {
 	}
 }
 
-func (u *User) cmdStart() {
-	cmdList, _ := u.s.Bot.GetMyCommands()
-	var str string
-	for i := range cmdList {
-		str += fmt.Sprintf("/%s - %s\n", cmdList[i].Command, cmdList[i].Description)
-	}
-	str += "The bot will use latest subURL for testing after a valid subURL."
-	u.SendMessage(str)
-}
-
-func (u *User) cmdStat() {
-	if u.data.checkedInfo.Load() == "" {
-		u.SendMessage("Cannot find status information. Please use [/url subURL] command once.")
-	} else {
-		u.SendMessage(u.s.userMap[u.ID].data.checkedInfo.Load())
-	}
-}
-
-func (u *User) cmdVersion() {
-	todayUser := 0
-	for _, v := range u.s.userMap {
-		if time.Now().Unix()-v.data.lastCheck.Load() < int64(24*time.Hour.Seconds()) {
-			todayUser++
-		}
-	}
-	uptime := utils.FormatTime(time.Since(u.s.StartTime))
-	u.SendMessage(fmt.Sprintf("StairUnlocker Bot %s\nUsers: (%d/%d) \nUptime: %s", C.Version, todayUser, len(u.s.userMap), uptime))
-
-}
-
 func (u *User) validator() bool {
-	if len(u.s.userMap) > model.BotCfg.MaxOnline {
+	if u.s.runningTask.Load() > int64(model.BotCfg.MaxOnline) {
 		u.SendMessage("Too many connections, Please try again later.")
 		return false
 	}
@@ -115,42 +80,6 @@ func (u *User) validator() bool {
 	return true
 }
 
-func (u *User) cmdURL(msg string) error {
-	subURL, err := url.Parse(strings.TrimSpace(strings.ReplaceAll(msg, "/url", "")))
-	if err != nil || (u.data.subURL.Load() == "" && subURL.String() == "") {
-		u.SendMessage("Invalid URL. Please inspect your subURL or use [/url subURL] command once.")
-		return err
-	}
-
-	if u.UserOutInternal() {
-		su := subURL.String()
-		if su == "" {
-			su = u.data.subURL.Load()
-		}
-		u.streamMedia(su)
-	}
-
-	return nil
-}
-
-func (u *User) cmdIP(msg string) error {
-	subURL, err := url.Parse(strings.TrimSpace(strings.ReplaceAll(msg, "/ip", "")))
-	if err != nil || (u.data.subURL.Load() == "" && subURL.String() == "") {
-		u.SendMessage("Invalid URL. Please inspect your subURL or use [/ip subURL] command once.")
-		return err
-	}
-
-	if u.UserOutInternal() {
-		su := subURL.String()
-		if su == "" {
-			su = u.data.subURL.Load()
-		}
-		u.realIP(su)
-	}
-
-	return nil
-}
-
 func (u *User) SendMessage(msg string) (resp tg.Message, err error) {
 	resp, err = u.s.Bot.Send(tg.NewMessage(u.ID, msg))
 	if err != nil {
@@ -159,7 +88,7 @@ func (u *User) SendMessage(msg string) (resp tg.Message, err error) {
 	return
 }
 
-func (u *User) UserOutInternal() bool {
+func (u *User) rateLimiting() bool {
 	remainTime := float64(model.BotCfg.Internal) - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
 	if remainTime > 0 {
 		if u.countDownMsgID.Load() == 0 {
@@ -168,7 +97,7 @@ func (u *User) UserOutInternal() bool {
 			go func() {
 				n := 5 * time.Second
 				for {
-					remainTime := float64(model.BotCfg.Internal) - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
+					remainTime = float64(model.BotCfg.Internal) - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
 					if remainTime <= 0 {
 						_ = u.DeleteMessage(int(u.countDownMsgID.Load()))
 						u.countDownMsgID.Store(0)
@@ -183,9 +112,9 @@ func (u *User) UserOutInternal() bool {
 				}
 			}()
 		}
-		return false
-	} else {
 		return true
+	} else {
+		return false
 	}
 }
 
