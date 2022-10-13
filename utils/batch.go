@@ -7,12 +7,14 @@ import (
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
 	"github.com/panjf2000/ants/v2"
+
+	"github.com/thank243/StairUnlocker-Bot/model"
 )
 
 var l sync.RWMutex
 
 //BatchCheck : n int, to set ConcurrencyNum.
-func BatchCheck(proxiesList []C.Proxy, n int) (streamDataList []StreamData) {
+func BatchCheck(proxiesList []C.Proxy, n int) (streamDataList []model.StreamData) {
 	type combineProxy struct {
 		proxy  C.Proxy
 		stream absStream

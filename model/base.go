@@ -1,4 +1,4 @@
-package utils
+package model
 
 type StreamData struct {
 	Name      string

@@ -1,4 +1,4 @@
-package user
+package app
 
 import (
 	"fmt"
@@ -10,11 +10,11 @@ import (
 	"github.com/Dreamacro/clash/log"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
-	"github.com/thank243/StairUnlocker-Bot/config"
+	"github.com/thank243/StairUnlocker-Bot/model"
 	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
-func statistic(streamMediaList *[]utils.StreamData) map[string]int {
+func statistic(streamMediaList *[]model.StreamData) map[string]int {
 	statMap := make(map[string]int)
 	for i := range *streamMediaList {
 		statMap[(*streamMediaList)[i].Name]++
@@ -25,7 +25,7 @@ func statistic(streamMediaList *[]utils.StreamData) map[string]int {
 	return statMap
 }
 
-func (u *User) StreamMedia() {
+func (u *User) streamMedia(subUrl string) {
 	u.IsCheck = true
 	var proxiesList []C.Proxy
 	checkFlag := make(chan bool)
@@ -35,13 +35,17 @@ func (u *User) StreamMedia() {
 		close(checkFlag)
 	}()
 
-	proxies, _, err := u.generateProxies(config.BotCfg.ConverterAPI)
+	proxies, err := u.buildProxies(subUrl)
 	if err != nil {
-		_ = u.EditMessage(u.MessageID, err.Error())
+		u.EditMessage(u.editMsgID, err.Error())
 		return
 	}
+	if subUrl != "" {
+		u.Data.SubURL = subUrl
+	}
+
 	// animation while waiting test.
-	go u.statusMessage("Checking nodes unlock status", checkFlag)
+	go u.loading("Checking nodes unlock status", checkFlag)
 
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
@@ -49,7 +53,7 @@ func (u *User) StreamMedia() {
 	// Must have valid node.
 	if len(proxiesList) > 0 {
 		start := time.Now()
-		unlockList := utils.BatchCheck(proxiesList, config.BotCfg.MaxConn)
+		unlockList := utils.BatchCheck(proxiesList, model.BotCfg.MaxConn)
 		checkFlag <- true
 		report := fmt.Sprintf("Total %d nodes, Duration: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 
@@ -67,9 +71,9 @@ func (u *User) StreamMedia() {
 		// save test results.
 		u.Data.CheckInfo = telegramReport
 		log.Warnln("[ID: %d] %s", u.ID, report)
-		_ = u.EditMessage(u.MessageID, "Uploading PNG file...")
+		u.EditMessage(u.editMsgID, "Uploading PNG file...")
 
-		buffer, err := generatePNG(unlockList, nameList)
+		buffer, err := utils.GeneratePNG(unlockList, nameList)
 		if err != nil {
 			return
 		}
@@ -79,7 +83,7 @@ func (u *User) StreamMedia() {
 			Bytes: buffer.Bytes(),
 		})
 		wrapPNG.Caption = fmt.Sprintf("%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", telegramReport)
-		_, err = u.Bot.Send(wrapPNG)
-		_ = u.DeleteMessage(u.MessageID)
+		u.s.Bot.Send(wrapPNG)
+		u.DeleteMessage(u.editMsgID)
 	}
 }
