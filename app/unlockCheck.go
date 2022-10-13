@@ -49,6 +49,7 @@ func (u *User) streamMedia(subUrl string) error {
 	// animation while waiting test.
 	go u.loading("Checking nodes unlock status", checkFlag, msgInst.MessageID)
 
+
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
 	}
