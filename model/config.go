@@ -20,6 +20,6 @@ type BotConfig struct {
 var (
 	Version  bool
 	Help     bool
-	BotCfg   *BotConfig
+	BotCfg   BotConfig
 	ConfPath string
 )

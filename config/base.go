@@ -23,9 +23,7 @@ func init() {
 	flag.Parse()
 
 	//initial config.yaml
-	var (
-		buf []byte
-	)
+	var buf []byte
 
 	if model.ConfPath != "" {
 		buf, _ = ioutil.ReadFile(model.ConfPath)
