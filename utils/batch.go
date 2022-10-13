@@ -9,6 +9,7 @@ import (
 	"github.com/panjf2000/ants/v2"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
+	"github.com/thank243/StairUnlocker-Bot/provider"
 )
 
 var l sync.RWMutex
@@ -17,14 +18,14 @@ var l sync.RWMutex
 func BatchCheck(proxiesList []C.Proxy, n int) (streamDataList []model.StreamData) {
 	type combineProxy struct {
 		proxy  C.Proxy
-		stream absStream
+		stream provider.AbsStream
 	}
 
 	var (
 		wg sync.WaitGroup
 		cp []combineProxy
 	)
-	streamList := NewStreamList()
+	streamList := provider.NewStreamList()
 
 	for i := range proxiesList {
 		for ii := range streamList {
@@ -39,7 +40,7 @@ func BatchCheck(proxiesList []C.Proxy, n int) (streamDataList []model.StreamData
 	//initial pool
 	pool, err := ants.NewPoolWithFunc(n, func(i interface{}) {
 		c := i.(combineProxy)
-		result, err := c.stream.isUnlock(&c.proxy)
+		result, err := c.stream.IsUnlock(&c.proxy)
 		atomic.AddInt32(&curr, 1)
 		if err != nil {
 			log.Debugln("(%d/%d) %s : %s", atomic.LoadInt32(&curr), total, c.proxy.Name(), err.Error())

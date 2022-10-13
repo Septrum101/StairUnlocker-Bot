@@ -8,7 +8,7 @@ import (
 
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
 	"github.com/thank243/StairUnlocker-Bot/utils"
@@ -25,27 +25,30 @@ func statistic(streamMediaList *[]model.StreamData) map[string]int {
 	return statMap
 }
 
-func (u *User) streamMedia(subUrl string) {
-	u.IsCheck = true
+func (u *User) streamMedia(subUrl string) error {
+	u.isCheck.Store(true)
+
 	var proxiesList []C.Proxy
 	checkFlag := make(chan bool)
 	defer func() {
-		u.Data.LastCheck = time.Now().Unix()
-		u.IsCheck = false
+		u.data.lastCheck.Store(time.Now().Unix())
+		u.isCheck.Store(false)
 		close(checkFlag)
 	}()
 
+	msgInst, _ := u.SendMessage("Converting from API server.")
 	proxies, err := u.buildProxies(subUrl)
 	if err != nil {
-		u.EditMessage(u.editMsgID, err.Error())
-		return
+		u.EditMessage(msgInst.MessageID, err.Error())
+		return err
 	}
 	if subUrl != "" {
-		u.Data.SubURL = subUrl
+		u.data.subURL.Store(subUrl)
 	}
 
 	// animation while waiting test.
-	go u.loading("Checking nodes unlock status", checkFlag)
+	go u.loading("Checking nodes unlock status", checkFlag, msgInst.MessageID)
+
 
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
@@ -68,22 +71,24 @@ func (u *User) streamMedia(subUrl string) {
 			finalStr += fmt.Sprintf("%s: %d\n", nameList[i], statisticMap[nameList[i]])
 		}
 		telegramReport := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\n%s\n%sTimestamp: %s\n%s", C.Version, report, finalStr, time.Now().UTC().Format(time.RFC3339), strings.Repeat("-", 25))
-		// save test results.
-		u.Data.CheckInfo = telegramReport
 		log.Warnln("[ID: %d] %s", u.ID, report)
-		u.EditMessage(u.editMsgID, "Uploading PNG file...")
+		u.EditMessage(msgInst.MessageID, "Uploading PNG file...")
 
 		buffer, err := utils.GeneratePNG(unlockList, nameList)
 		if err != nil {
-			return
+			return err
 		}
 		// send result image
-		wrapPNG := tgbotapi.NewDocument(u.ID, tgbotapi.FileBytes{
+		wrapPNG := tgBot.NewDocument(u.ID, tgBot.FileBytes{
 			Name:  fmt.Sprintf("stairunlocker_bot_result_%d.png", time.Now().Unix()),
 			Bytes: buffer.Bytes(),
 		})
 		wrapPNG.Caption = fmt.Sprintf("%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", telegramReport)
+		// save test results.
+		u.data.checkedInfo.Store(wrapPNG.Caption)
+
 		u.s.Bot.Send(wrapPNG)
-		u.DeleteMessage(u.editMsgID)
+		u.DeleteMessage(msgInst.MessageID)
 	}
+	return nil
 }

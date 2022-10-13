@@ -14,21 +14,23 @@ import (
 )
 
 func (u *User) realIP(subUrl string) error {
-	u.IsCheck = true
+	u.isCheck.Store(true)
+
 	checkFlag := make(chan bool)
 	defer func() {
-		u.Data.LastCheck = time.Now().Unix()
-		u.IsCheck = false
+		u.data.lastCheck.Store(time.Now().Unix())
+		u.isCheck.Store(false)
 		close(checkFlag)
 	}()
 
+	msgInst, _ := u.SendMessage("Converting from API server.")
 	proxies, err := u.buildProxies(subUrl)
 	if err != nil {
-		u.EditMessage(u.editMsgID, err.Error())
+		u.EditMessage(msgInst.MessageID, err.Error())
 		return err
 	}
 	if subUrl != "" {
-		u.Data.SubURL = subUrl
+		u.data.subURL.Store(subUrl)
 	}
 
 	var proxiesList []C.Proxy
@@ -36,13 +38,14 @@ func (u *User) realIP(subUrl string) error {
 		proxiesList = append(proxiesList, v)
 	}
 	// animation status
-	go u.loading("Retrieving IP information", checkFlag)
+	go u.loading("Retrieving IP information", checkFlag, msgInst.MessageID)
 
 	start := time.Now()
 	inbound, outbound := utils.GetIPList(proxiesList, model.BotCfg.MaxConn)
 	checkFlag <- true
-	log.Warnln("[ID: %d] Total %d nodes: inbounds: %d -> outbounds: %d", u.ID, len(proxies), len(inbound), len(outbound))
-	ipStatTitle := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\nTotal %d nodes, Duration: %s\ninbound IP: %d\noutbound IP: %d\nTimestamp: %s", C.Version, len(proxies), time.Since(start).Round(time.Millisecond), len(inbound), len(outbound), time.Now().UTC().Format(time.RFC3339))
+	duration := time.Since(start).Round(time.Millisecond)
+	log.Warnln("[ID: %d] Total %d nodes: inbounds: %d -> outbounds: %d, Duration: %s", u.ID, len(proxies), len(inbound), len(outbound), duration)
+	ipStatTitle := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\nTotal %d nodes, Duration: %s\ninbound IP: %d\noutbound IP: %d\nTimestamp: %s", C.Version, len(proxies), duration, len(inbound), len(outbound), time.Now().UTC().Format(time.RFC3339))
 	ipStat := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\nEntrypoint IP: ", C.Version)
 	for _, v := range inbound {
 		ipStat += "\n" + v
@@ -57,6 +60,6 @@ func (u *User) realIP(subUrl string) error {
 	})
 	warpFile.Caption = fmt.Sprintf("%s\n%s\n@stairunlock_test_bot\nProject: https://git.io/Jyl5l", ipStatTitle, strings.Repeat("-", 25))
 	u.s.Bot.Send(warpFile)
-	u.DeleteMessage(u.editMsgID)
+	u.DeleteMessage(msgInst.MessageID)
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Dreamacro/clash/log"
 	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"go.uber.org/atomic"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
 )
@@ -17,6 +18,7 @@ type Server struct {
 	StartTime      time.Time
 	Bot            *tgBot.BotAPI
 	l              sync.RWMutex
+	runningTask    atomic.Int64
 }
 
 func NewServer() (*Server, error) {
@@ -57,14 +59,14 @@ func NewServer() (*Server, error) {
 
 func (s *Server) Start() {
 	for i := range s.updatesChannel {
-		if i.Message.Text == "" {
+		if i.Message == nil || i.Message.Text == "" {
 			continue
 		}
-		if u, ok := s.userMap[i.Message.Chat.ID]; ok {
+		if u, ok := s.userMap[i.SentFrom().ID]; ok {
 			u.message <- i.Message
 		} else {
 			u = NewUser(s, &i)
-			s.userMap[i.Message.Chat.ID] = u
+			s.userMap[i.SentFrom().ID] = u
 			u.message <- i.Message
 		}
 	}
