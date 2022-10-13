@@ -7,10 +7,12 @@ import (
 	"time"
 
 	C "github.com/Dreamacro/clash/constant"
+
+	"github.com/thank243/StairUnlocker-Bot/model"
 )
 
 type absStream interface {
-	isUnlock(p *C.Proxy) (StreamData, error)
+	isUnlock(p *C.Proxy) (model.StreamData, error)
 }
 
 type unlockFactory interface {
@@ -37,7 +39,7 @@ func (n *netflix) create() absStream {
 	return new(netflix)
 }
 
-func (n *netflix) isUnlock(p *C.Proxy) (s StreamData, err error) {
+func (n *netflix) isUnlock(p *C.Proxy) (s model.StreamData, err error) {
 	s.Name = "Netflix"
 	s.ProxyName = (*p).Name()
 	start := time.Now()
@@ -60,7 +62,7 @@ func (y *youtube) create() absStream {
 	return new(youtube)
 }
 
-func (y *youtube) isUnlock(p *C.Proxy) (s StreamData, err error) {
+func (y *youtube) isUnlock(p *C.Proxy) (s model.StreamData, err error) {
 	s.Name = "Youtube Premium"
 	s.ProxyName = (*p).Name()
 	start := time.Now()
@@ -83,7 +85,7 @@ func (d *disney) create() absStream {
 	return new(disney)
 }
 
-func (d *disney) isUnlock(p *C.Proxy) (s StreamData, err error) {
+func (d *disney) isUnlock(p *C.Proxy) (s model.StreamData, err error) {
 	s.Name = "Disney Plus"
 	s.ProxyName = (*p).Name()
 	start := time.Now()
@@ -106,7 +108,7 @@ func (h *hbo) create() absStream {
 	return new(hbo)
 }
 
-func (h *hbo) isUnlock(p *C.Proxy) (s StreamData, err error) {
+func (h *hbo) isUnlock(p *C.Proxy) (s model.StreamData, err error) {
 	s.Name = "HBO"
 	s.ProxyName = (*p).Name()
 	start := time.Now()
@@ -129,7 +131,7 @@ func (t *tvb) create() absStream {
 	return new(tvb)
 }
 
-func (t *tvb) isUnlock(p *C.Proxy) (s StreamData, err error) {
+func (t *tvb) isUnlock(p *C.Proxy) (s model.StreamData, err error) {
 	s.Name = "TVB"
 	s.ProxyName = (*p).Name()
 	start := time.Now()
@@ -155,7 +157,7 @@ func (a *abema) create() absStream {
 	return new(abema)
 }
 
-func (a *abema) isUnlock(p *C.Proxy) (s StreamData, err error) {
+func (a *abema) isUnlock(p *C.Proxy) (s model.StreamData, err error) {
 	s.Name = "Abema"
 	s.ProxyName = (*p).Name()
 	start := time.Now()
@@ -178,7 +180,7 @@ func (b *bahamut) create() absStream {
 	return new(bahamut)
 }
 
-func (b *bahamut) isUnlock(p *C.Proxy) (s StreamData, err error) {
+func (b *bahamut) isUnlock(p *C.Proxy) (s model.StreamData, err error) {
 	s.Name = "bahamut"
 	s.ProxyName = (*p).Name()
 	start := time.Now()

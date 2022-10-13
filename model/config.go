@@ -1,4 +1,4 @@
-package config
+package model
 
 import (
 	"github.com/Dreamacro/clash/log"
