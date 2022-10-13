@@ -123,8 +123,13 @@ func (u *User) cmdURL(msg string) error {
 		u.SendMessage("Invalid URL. Please inspect your subURL or use [/url subURL] command once.")
 		return err
 	}
+
 	if u.UserOutInternal() {
-		u.streamMedia(subURL.String())
+		su := subURL.String()
+		if su == "" {
+			su = u.Data.SubURL
+		}
+		u.streamMedia(su)
 	}
 
 	return nil
@@ -136,8 +141,13 @@ func (u *User) cmdIP(msg string) error {
 		u.SendMessage("Invalid URL. Please inspect your subURL or use [/ip subURL] command once.")
 		return err
 	}
+
 	if u.UserOutInternal() {
-		u.realIP(subURL.String())
+		su := subURL.String()
+		if su == "" {
+			su = u.Data.SubURL
+		}
+		u.realIP(su)
 	}
 
 	return nil

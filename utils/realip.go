@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 	"sync"
@@ -149,4 +150,32 @@ func GetIPList(proxiesList []C.Proxy, n int) ([]string, []string) {
 	}
 	wg.Wait()
 	return deDuplication(entryIPList), deDuplication(endIPList)
+}
+
+func urlToMetadata(rawURL string) (addr C.Metadata, err error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return
+	}
+
+	port := u.Port()
+	if port == "" {
+		switch u.Scheme {
+		case "https":
+			port = "443"
+		case "http":
+			port = "80"
+		default:
+			err = fmt.Errorf("%s scheme not Support", rawURL)
+			return
+		}
+	}
+
+	addr = C.Metadata{
+		AddrType: C.AtypDomainName,
+		Host:     u.Hostname(),
+		DstIP:    nil,
+		DstPort:  port,
+	}
+	return
 }

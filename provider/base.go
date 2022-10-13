@@ -1,4 +1,4 @@
-package utils
+package provider
 
 import (
 	"context"
@@ -10,34 +10,28 @@ import (
 
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/go-resty/resty/v2"
+
+	"github.com/thank243/StairUnlocker-Bot/model"
 )
 
-func urlToMetadata(rawURL string) (addr C.Metadata, err error) {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return
-	}
+type AbsStream interface {
+	IsUnlock(p *C.Proxy) (model.StreamData, error)
+}
 
-	port := u.Port()
-	if port == "" {
-		switch u.Scheme {
-		case "https":
-			port = "443"
-		case "http":
-			port = "80"
-		default:
-			err = fmt.Errorf("%s scheme not Support", rawURL)
-			return
-		}
-	}
+type unlockProvider interface {
+	create() AbsStream
+}
 
-	addr = C.Metadata{
-		AddrType: C.AtypDomainName,
-		Host:     u.Hostname(),
-		DstIP:    nil,
-		DstPort:  port,
+func NewStreamList() []AbsStream {
+	return []AbsStream{
+		unlockProvider(new(netflix)).create(),
+		unlockProvider(new(hbo)).create(),
+		unlockProvider(new(youtube)).create(),
+		unlockProvider(new(disney)).create(),
+		unlockProvider(new(tvb)).create(),
+		unlockProvider(new(abema)).create(),
+		unlockProvider(new(bahamut)).create(),
 	}
-	return
 }
 
 func getURLResp(p *C.Proxy, url string) (resp *resty.Response, err error) {
@@ -71,4 +65,32 @@ func getURLResp(p *C.Proxy, url string) (resp *resty.Response, err error) {
 		return nil, err
 	}
 	return resp, err
+}
+
+func urlToMetadata(rawURL string) (addr C.Metadata, err error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return
+	}
+
+	port := u.Port()
+	if port == "" {
+		switch u.Scheme {
+		case "https":
+			port = "443"
+		case "http":
+			port = "80"
+		default:
+			err = fmt.Errorf("%s scheme not Support", rawURL)
+			return
+		}
+	}
+
+	addr = C.Metadata{
+		AddrType: C.AtypDomainName,
+		Host:     u.Hostname(),
+		DstIP:    nil,
+		DstPort:  port,
+	}
+	return
 }

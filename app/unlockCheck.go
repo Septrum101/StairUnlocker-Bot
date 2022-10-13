@@ -8,7 +8,7 @@ import (
 
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
 	"github.com/thank243/StairUnlocker-Bot/utils"
@@ -25,7 +25,7 @@ func statistic(streamMediaList *[]model.StreamData) map[string]int {
 	return statMap
 }
 
-func (u *User) streamMedia(subUrl string) {
+func (u *User) streamMedia(subUrl string) error {
 	u.IsCheck = true
 	var proxiesList []C.Proxy
 	checkFlag := make(chan bool)
@@ -38,7 +38,7 @@ func (u *User) streamMedia(subUrl string) {
 	proxies, err := u.buildProxies(subUrl)
 	if err != nil {
 		u.EditMessage(u.editMsgID, err.Error())
-		return
+		return err
 	}
 	if subUrl != "" {
 		u.Data.SubURL = subUrl
@@ -75,10 +75,10 @@ func (u *User) streamMedia(subUrl string) {
 
 		buffer, err := utils.GeneratePNG(unlockList, nameList)
 		if err != nil {
-			return
+			return err
 		}
 		// send result image
-		wrapPNG := tgbotapi.NewDocument(u.ID, tgbotapi.FileBytes{
+		wrapPNG := tgBot.NewDocument(u.ID, tgBot.FileBytes{
 			Name:  fmt.Sprintf("stairunlocker_bot_result_%d.png", time.Now().Unix()),
 			Bytes: buffer.Bytes(),
 		})
@@ -86,4 +86,5 @@ func (u *User) streamMedia(subUrl string) {
 		u.s.Bot.Send(wrapPNG)
 		u.DeleteMessage(u.editMsgID)
 	}
+	return nil
 }

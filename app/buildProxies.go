@@ -16,48 +16,47 @@ import (
 
 func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err error) {
 	log.Infoln("[ID: %d] Converting from API server.", u.ID)
-	_, err = u.SendMessage("Converting from API server.")
-	pList, err := u.convertAPI(subUrl)
+	u.SendMessage("Converting from API server.")
+
+	resp, err := convertAPI(subUrl)
 	if err != nil {
-		u.Data.SubURL = ""
+		log.Errorln("[ID: %d] %s", u.ID, resp)
 		return
 	}
-	unmarshalProxies, err := config.UnmarshalRawConfig(pList)
+
+	rawConfig, err := config.UnmarshalRawConfig(resp)
 	if err != nil {
 		return
 	}
-	if len(unmarshalProxies.Proxy) == 0 {
+	if len(rawConfig.Proxy) == 0 {
 		log.Errorln("[ID: %d] %s", u.ID, "No nodes were found!")
 		err = errors.New("no nodes were found")
 		return
 	}
-	if len(unmarshalProxies.Proxy) > 1024 {
+	if len(rawConfig.Proxy) > 1024 {
 		log.Errorln("[ID: %d] %s", u.ID, "Too many nodes at the same time, Please reduce nodes less than 1024.")
 		err = errors.New("too many nodes")
 		return
 	}
 	//proxiesTest(u)
 	// compatible clash-core 1.9.0
-	for i := range unmarshalProxies.Proxy {
-		for k := range unmarshalProxies.Proxy[i] {
+	for i := range rawConfig.Proxy {
+		for k := range rawConfig.Proxy[i] {
 			switch k {
 			case "ws-path":
-				unmarshalProxies.Proxy[i]["ws-opts"] = map[string]interface{}{"path": unmarshalProxies.Proxy[i]["ws-path"]}
-				delete(unmarshalProxies.Proxy[i], "ws-path")
+				rawConfig.Proxy[i]["ws-opts"] = map[string]interface{}{"path": rawConfig.Proxy[i]["ws-path"]}
+				delete(rawConfig.Proxy[i], "ws-path")
 			case "ws-header":
-				unmarshalProxies.Proxy[i]["ws-opts"] = map[string]interface{}{"ws-header": unmarshalProxies.Proxy[i]["ws-header"]}
-				delete(unmarshalProxies.Proxy[i], "ws-header")
+				rawConfig.Proxy[i]["ws-opts"] = map[string]interface{}{"ws-header": rawConfig.Proxy[i]["ws-header"]}
+				delete(rawConfig.Proxy[i], "ws-header")
 			}
 		}
 	}
-	proxies, err = u.parseProxies(unmarshalProxies)
+	proxies, err = parseProxies(rawConfig)
 	return
 }
 
-func (u *User) convertAPI(subUrl string) (re []byte, err error) {
-	if subUrl == "" {
-		subUrl = u.Data.SubURL
-	}
+func convertAPI(subUrl string) ([]byte, error) {
 	resp, err := resty.New().SetHeader("User-Agent", "ClashforWindows/0.19.6").SetRetryCount(3).
 		SetQueryParams(map[string]string{
 			"target":      "clash",
@@ -66,17 +65,16 @@ func (u *User) convertAPI(subUrl string) (re []byte, err error) {
 			"emoji":       strconv.FormatBool(false),
 			"url":         subUrl},
 		).R().Get(fmt.Sprintf("%s/sub", model.BotCfg.ConverterAPI))
-
-	re = resp.Body()
-	if resp.StatusCode() != 200 {
-		log.Errorln("[ID: %d] %s", u.ID, re)
-		err = errors.New(string(re))
-		return
+	if err != nil {
+		return nil, err
 	}
-	return
+	if resp.StatusCode() > 299 {
+		return nil, errors.New(resp.String())
+	}
+	return resp.Body(), nil
 }
 
-func (u *User) parseProxies(cfg *model.RawConfig) (proxies map[string]C.Proxy, err error) {
+func parseProxies(cfg *model.RawConfig) (proxies map[string]C.Proxy, err error) {
 	proxies = make(map[string]C.Proxy)
 	proxiesConfig := cfg.Proxy
 	for idx, mapping := range proxiesConfig {

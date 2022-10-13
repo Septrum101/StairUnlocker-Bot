@@ -57,14 +57,14 @@ func NewServer() (*Server, error) {
 
 func (s *Server) Start() {
 	for i := range s.updatesChannel {
-		if i.Message.Text == "" {
+		if i.Message == nil || i.Message.Text == "" {
 			continue
 		}
-		if u, ok := s.userMap[i.Message.Chat.ID]; ok {
+		if u, ok := s.userMap[i.SentFrom().ID]; ok {
 			u.message <- i.Message
 		} else {
 			u = NewUser(s, &i)
-			s.userMap[i.Message.Chat.ID] = u
+			s.userMap[i.SentFrom().ID] = u
 			u.message <- i.Message
 		}
 	}

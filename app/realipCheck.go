@@ -41,8 +41,9 @@ func (u *User) realIP(subUrl string) error {
 	start := time.Now()
 	inbound, outbound := utils.GetIPList(proxiesList, model.BotCfg.MaxConn)
 	checkFlag <- true
-	log.Warnln("[ID: %d] Total %d nodes: inbounds: %d -> outbounds: %d", u.ID, len(proxies), len(inbound), len(outbound))
-	ipStatTitle := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\nTotal %d nodes, Duration: %s\ninbound IP: %d\noutbound IP: %d\nTimestamp: %s", C.Version, len(proxies), time.Since(start).Round(time.Millisecond), len(inbound), len(outbound), time.Now().UTC().Format(time.RFC3339))
+	duration := time.Since(start).Round(time.Millisecond)
+	log.Warnln("[ID: %d] Total %d nodes: inbounds: %d -> outbounds: %d, Duration: %s", u.ID, len(proxies), len(inbound), len(outbound), duration)
+	ipStatTitle := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\nTotal %d nodes, Duration: %s\ninbound IP: %d\noutbound IP: %d\nTimestamp: %s", C.Version, len(proxies), duration, len(inbound), len(outbound), time.Now().UTC().Format(time.RFC3339))
 	ipStat := fmt.Sprintf("StairUnlocker Bot %s Bulletin:\nEntrypoint IP: ", C.Version)
 	for _, v := range inbound {
 		ipStat += "\n" + v
