@@ -48,15 +48,13 @@ func (u *User) cmdURL(msg string) error {
 		return err
 	}
 
-	if !u.rateLimiting() {
-		su := subURL.String()
-		if su == "" {
-			su = u.data.subURL.Load()
-		}
-		u.s.runningTask.Add(1)
-		u.streamMedia(su)
-		u.s.runningTask.Add(-1)
+	su := subURL.String()
+	if su == "" {
+		su = u.data.subURL.Load()
 	}
+	u.s.runningTask.Add(1)
+	u.streamMedia(su)
+	u.s.runningTask.Add(-1)
 
 	return nil
 }
@@ -68,15 +66,13 @@ func (u *User) cmdIP(msg string) error {
 		return err
 	}
 
-	if !u.rateLimiting() {
-		su := subURL.String()
-		if su == "" {
-			su = u.data.subURL.Load()
-		}
-		u.s.runningTask.Add(1)
-		u.realIP(su)
-		u.s.runningTask.Add(-1)
+	su := subURL.String()
+	if su == "" {
+		su = u.data.subURL.Load()
 	}
+	u.s.runningTask.Add(1)
+	u.realIP(su)
+	u.s.runningTask.Add(-1)
 
 	return nil
 }

@@ -71,21 +71,18 @@ func (u *User) validator() bool {
 		u.SendMessage("Too many connections, Please try again later.")
 		return false
 	}
+
 	// forbid double-checking
 	if u.isCheck.Load() {
 		u.SendMessage("Duplication, Previous testing is not completed! Please try again later.")
 		return false
 	}
 
-	return true
-}
-
-func (u *User) SendMessage(msg string) (resp tg.Message, err error) {
-	resp, err = u.s.Bot.Send(tg.NewMessage(u.ID, msg))
-	if err != nil {
-		return
+	if u.rateLimiting() {
+		return false
 	}
-	return
+
+	return true
 }
 
 func (u *User) rateLimiting() bool {
@@ -116,6 +113,14 @@ func (u *User) rateLimiting() bool {
 	} else {
 		return false
 	}
+}
+
+func (u *User) SendMessage(msg string) (resp tg.Message, err error) {
+	resp, err = u.s.Bot.Send(tg.NewMessage(u.ID, msg))
+	if err != nil {
+		return
+	}
+	return
 }
 
 func (u *User) DeleteMessage(msgID int) error {

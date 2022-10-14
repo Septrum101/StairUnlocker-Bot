@@ -1,7 +1,6 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -19,7 +18,7 @@ func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err erro
 
 	resp, err := convertAPI(subUrl)
 	if err != nil {
-		log.Errorln("[ID: %d] %s", u.ID, resp)
+		log.Errorln("[ID: %d] %s", u.ID, err)
 		return
 	}
 
@@ -29,15 +28,15 @@ func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err erro
 	}
 	if len(rawConfig.Proxy) == 0 {
 		log.Errorln("[ID: %d] %s", u.ID, "No nodes were found!")
-		err = errors.New("no nodes were found")
+		err = fmt.Errorf("no nodes were found")
 		return
 	}
 	if len(rawConfig.Proxy) > 1024 {
 		log.Errorln("[ID: %d] %s", u.ID, "Too many nodes at the same time, Please reduce nodes less than 1024.")
-		err = errors.New("too many nodes")
+		err = fmt.Errorf("too many nodes")
 		return
 	}
-	//proxiesTest(u)
+	// proxiesTest(u)
 	// compatible clash-core 1.9.0
 	for i := range rawConfig.Proxy {
 		for k := range rawConfig.Proxy[i] {
@@ -68,7 +67,7 @@ func convertAPI(subUrl string) ([]byte, error) {
 		return nil, err
 	}
 	if resp.StatusCode() > 299 {
-		return nil, errors.New(resp.String())
+		return nil, fmt.Errorf(resp.String())
 	}
 	return resp.Body(), nil
 }
