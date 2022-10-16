@@ -2,16 +2,15 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"time"
 
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/go-resty/resty/v2"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
+	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
 type AbsStream interface {
@@ -38,7 +37,7 @@ func getURLResp(p *C.Proxy, url string) (resp *resty.Response, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	addr, err := urlToMetadata(url)
+	addr, err := utils.UrlToMetadata(url)
 	if err != nil {
 		return
 	}
@@ -65,32 +64,4 @@ func getURLResp(p *C.Proxy, url string) (resp *resty.Response, err error) {
 		return nil, err
 	}
 	return resp, err
-}
-
-func urlToMetadata(rawURL string) (addr C.Metadata, err error) {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return
-	}
-
-	port := u.Port()
-	if port == "" {
-		switch u.Scheme {
-		case "https":
-			port = "443"
-		case "http":
-			port = "80"
-		default:
-			err = fmt.Errorf("%s scheme not Support", rawURL)
-			return
-		}
-	}
-
-	addr = C.Metadata{
-		AddrType: C.AtypDomainName,
-		Host:     u.Hostname(),
-		DstIP:    nil,
-		DstPort:  port,
-	}
-	return
 }

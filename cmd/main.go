@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	//command-line
+	// command-line
 	if model.Version {
 		fmt.Printf("StairUnlock-Bot %s %s %s with %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, runtime.Version(), C.BuildTime)
 		return

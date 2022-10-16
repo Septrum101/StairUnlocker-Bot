@@ -1,8 +1,8 @@
 package app
 
 import (
-	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 
 	"github.com/Dreamacro/clash/adapter"
@@ -19,7 +19,7 @@ func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err erro
 
 	resp, err := convertAPI(subUrl)
 	if err != nil {
-		log.Errorln("[ID: %d] %s", u.ID, resp)
+		log.Errorln("[ID: %d] %s", u.ID, err)
 		return
 	}
 
@@ -29,15 +29,15 @@ func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err erro
 	}
 	if len(rawConfig.Proxy) == 0 {
 		log.Errorln("[ID: %d] %s", u.ID, "No nodes were found!")
-		err = errors.New("no nodes were found")
+		err = fmt.Errorf("no nodes were found")
 		return
 	}
 	if len(rawConfig.Proxy) > 1024 {
 		log.Errorln("[ID: %d] %s", u.ID, "Too many nodes at the same time, Please reduce nodes less than 1024.")
-		err = errors.New("too many nodes")
+		err = fmt.Errorf("too many nodes")
 		return
 	}
-	//proxiesTest(u)
+	// proxiesTest(u)
 	// compatible clash-core 1.9.0
 	for i := range rawConfig.Proxy {
 		for k := range rawConfig.Proxy[i] {
@@ -56,27 +56,27 @@ func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err erro
 }
 
 func convertAPI(subUrl string) ([]byte, error) {
+	unescapeUrl, _ := url.QueryUnescape(subUrl)
 	resp, err := resty.New().SetHeader("User-Agent", "ClashforWindows/0.19.6").SetRetryCount(3).
 		SetQueryParams(map[string]string{
 			"target":      "clash",
 			"append_type": strconv.FormatBool(true),
 			"list":        strconv.FormatBool(true),
 			"emoji":       strconv.FormatBool(false),
-			"url":         subUrl},
-		).R().Get(fmt.Sprintf("%s/sub", model.BotCfg.ConverterAPI))
+			"url":         unescapeUrl,
+		}).R().Get(fmt.Sprintf("%s/sub", model.BotCfg.ConverterAPI))
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode() > 299 {
-		return nil, errors.New(resp.String())
+		return nil, fmt.Errorf(resp.String())
 	}
 	return resp.Body(), nil
 }
 
 func parseProxies(cfg *model.RawConfig) (proxies map[string]C.Proxy, err error) {
 	proxies = make(map[string]C.Proxy)
-	proxiesConfig := cfg.Proxy
-	for idx, mapping := range proxiesConfig {
+	for idx, mapping := range cfg.Proxy {
 		proxy, err := adapter.ParseProxy(mapping)
 		if err != nil {
 			return nil, fmt.Errorf("proxy %d: %w", idx, err)

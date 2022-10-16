@@ -10,7 +10,7 @@ import (
 	"github.com/thank243/StairUnlocker-Bot/model"
 )
 
-//abema
+// abema
 type abema struct {
 }
 

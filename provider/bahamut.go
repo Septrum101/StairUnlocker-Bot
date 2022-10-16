@@ -19,7 +19,7 @@ func (b *bahamut) create() AbsStream {
 }
 
 func (b *bahamut) IsUnlock(p *C.Proxy) (s model.StreamData, err error) {
-	s.Name = "bahamut"
+	s.Name = "Bahamut"
 	s.ProxyName = (*p).Name()
 	start := time.Now()
 	resp, err := getURLResp(p, "https://ani.gamer.com.tw/ajax/token.php?adID=89422&sn=14667")

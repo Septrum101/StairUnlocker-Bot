@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -71,21 +72,18 @@ func (u *User) validator() bool {
 		u.SendMessage("Too many connections, Please try again later.")
 		return false
 	}
+
 	// forbid double-checking
 	if u.isCheck.Load() {
 		u.SendMessage("Duplication, Previous testing is not completed! Please try again later.")
 		return false
 	}
 
-	return true
-}
-
-func (u *User) SendMessage(msg string) (resp tg.Message, err error) {
-	resp, err = u.s.Bot.Send(tg.NewMessage(u.ID, msg))
-	if err != nil {
-		return
+	if u.rateLimiting() {
+		return false
 	}
-	return
+
+	return true
 }
 
 func (u *User) rateLimiting() bool {
@@ -118,6 +116,14 @@ func (u *User) rateLimiting() bool {
 	}
 }
 
+func (u *User) SendMessage(msg string) (resp tg.Message, err error) {
+	resp, err = u.s.Bot.Send(tg.NewMessage(u.ID, msg))
+	if err != nil {
+		return
+	}
+	return
+}
+
 func (u *User) DeleteMessage(msgID int) error {
 	_, err := u.s.Bot.Send(tg.NewDeleteMessage(u.ID, msgID))
 	if err != nil {
@@ -136,12 +142,12 @@ func (u *User) EditMessage(msgID int, text string) error {
 	return nil
 }
 
-func (u *User) loading(info string, checkFlag chan bool, msgID int) {
+func (u *User) loading(ctx context.Context, info string, msgID int) {
 	log.Debugln("[ID: %d] %s", u.ID, info)
 	count := 0
 	for {
 		select {
-		case <-checkFlag:
+		case <-ctx.Done():
 			return
 		default:
 			count++
