@@ -3,7 +3,6 @@ package config
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 
@@ -26,14 +25,14 @@ func init() {
 	var buf []byte
 
 	if model.ConfPath != "" {
-		buf, _ = ioutil.ReadFile(model.ConfPath)
+		buf, _ = os.ReadFile(model.ConfPath)
 	} else {
 		_, err := os.Stat("config.yaml")
 		if err != nil {
 			b, _ := os.ReadFile("config.example.yaml")
 			os.WriteFile("config.yaml", b, 644)
 		}
-		buf, _ = ioutil.ReadFile("config.yaml")
+		buf, _ = os.ReadFile("config.yaml")
 	}
 	yaml.Unmarshal(buf, &model.BotCfg)
 }
