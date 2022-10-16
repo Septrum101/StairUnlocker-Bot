@@ -60,7 +60,7 @@ func (u *User) realIP(subUrl string) error {
 	if len(proxiesList) > 0 {
 		log.Infoln("[ID: %d] Start real IP test", u.ID)
 		start := time.Now()
-		inbound, outbound := getIPList(proxiesList, model.BotCfg.MaxConn)
+		inbound, outbound := u.getIPList(proxiesList, model.BotCfg.MaxConn)
 		cancel()
 
 		duration := time.Since(start).Round(time.Millisecond)
@@ -116,7 +116,7 @@ func endIPTest(p C.Proxy) (ipInfo geoIP, err error) {
 	return
 }
 
-func entryIPTest(proxiesList []C.Proxy) ([]string, error) {
+func (u *User) entryIPTest(proxiesList []C.Proxy) ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -125,13 +125,15 @@ func entryIPTest(proxiesList []C.Proxy) ([]string, error) {
 	for i := range proxiesList {
 		ipList = append(ipList, entryIP(proxiesList[i].Addr())...)
 	}
-
+	if ipList == nil {
+		return nil, fmt.Errorf("[ID: %d] entry IP is null", u.ID)
+	}
 	offset := 0
 	for {
 		var ips []geoIP
 		end := offset + 100
-		if offset+100 > len(proxiesList) {
-			end = len(proxiesList)
+		if offset+100 > len(ipList) {
+			end = len(ipList)
 		}
 		_, err := resty.New().SetHeader("User-Agent", "curl").SetRetryCount(3).
 			SetCloseConnection(true).R().SetContext(ctx).SetResult(&ips).SetBody(ipList[offset:end]).
@@ -144,7 +146,7 @@ func entryIPTest(proxiesList []C.Proxy) ([]string, error) {
 				ipInfos = append(ipInfos, fmt.Sprintf("%s - %s, ISP: %s", ips[i].Query, ips[i].Country, ips[i].Isp))
 			}
 		}
-		if end == len(proxiesList) {
+		if end == len(ipList) {
 			break
 		}
 		offset += 100
@@ -170,14 +172,14 @@ func deDuplication(list []string) []string {
 	return countList
 }
 
-func getIPList(proxiesList []C.Proxy, n int) ([]string, []string) {
+func (u *User) getIPList(proxiesList []C.Proxy, n int) ([]string, []string) {
 	var (
 		wg          sync.WaitGroup
 		endIPList   []string
 		entryIPList []string
 	)
 
-	entryIPList, err := entryIPTest(proxiesList)
+	entryIPList, err := u.entryIPTest(proxiesList)
 	if err != nil {
 		log.Errorln("%v", err)
 	}

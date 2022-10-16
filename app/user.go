@@ -75,7 +75,7 @@ func (u *User) validator() bool {
 
 	// forbid double-checking
 	if u.isCheck.Load() {
-		u.SendMessage("Duplication, Previous testing is not completed! Please try again later.")
+		u.SendMessage("Duplication, Previous task is not completed! Please wait completed.")
 		return false
 	}
 
