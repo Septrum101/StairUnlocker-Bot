@@ -31,7 +31,7 @@ func init() {
 		_, err := os.Stat("config.yaml")
 		if err != nil {
 			b, _ := ioutil.ReadFile("config.example.yaml")
-			ioutil.WriteFile("config.yaml", b, 644)
+			os.WriteFile("config.yaml", b, 644)
 		}
 		buf, _ = ioutil.ReadFile("config.yaml")
 	}
