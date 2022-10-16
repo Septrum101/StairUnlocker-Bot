@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 
 	"github.com/Dreamacro/clash/adapter"
@@ -55,14 +56,15 @@ func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err erro
 }
 
 func convertAPI(subUrl string) ([]byte, error) {
+	unescapeUrl, _ := url.QueryUnescape(subUrl)
 	resp, err := resty.New().SetHeader("User-Agent", "ClashforWindows/0.19.6").SetRetryCount(3).
 		SetQueryParams(map[string]string{
 			"target":      "clash",
 			"append_type": strconv.FormatBool(true),
 			"list":        strconv.FormatBool(true),
 			"emoji":       strconv.FormatBool(false),
-			"url":         subUrl},
-		).R().Get(fmt.Sprintf("%s/sub", model.BotCfg.ConverterAPI))
+			"url":         unescapeUrl,
+		}).R().Get(fmt.Sprintf("%s/sub", model.BotCfg.ConverterAPI))
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +76,7 @@ func convertAPI(subUrl string) ([]byte, error) {
 
 func parseProxies(cfg *model.RawConfig) (proxies map[string]C.Proxy, err error) {
 	proxies = make(map[string]C.Proxy)
-	proxiesConfig := cfg.Proxy
-	for idx, mapping := range proxiesConfig {
+	for idx, mapping := range cfg.Proxy {
 		proxy, err := adapter.ParseProxy(mapping)
 		if err != nil {
 			return nil, fmt.Errorf("proxy %d: %w", idx, err)

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -141,12 +142,12 @@ func (u *User) EditMessage(msgID int, text string) error {
 	return nil
 }
 
-func (u *User) loading(info string, checkFlag chan bool, msgID int) {
+func (u *User) loading(ctx context.Context, info string, msgID int) {
 	log.Debugln("[ID: %d] %s", u.ID, info)
 	count := 0
 	for {
 		select {
-		case <-checkFlag:
+		case <-ctx.Done():
 			return
 		default:
 			count++

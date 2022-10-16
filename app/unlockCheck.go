@@ -1,18 +1,25 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
 	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/panjf2000/ants/v2"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
+	"github.com/thank243/StairUnlocker-Bot/provider"
 	"github.com/thank243/StairUnlocker-Bot/utils"
 )
+
+var l sync.RWMutex
 
 func statistic(streamMediaList *[]model.StreamData) map[string]int {
 	statMap := make(map[string]int)
@@ -27,13 +34,11 @@ func statistic(streamMediaList *[]model.StreamData) map[string]int {
 
 func (u *User) streamMedia(subUrl string) error {
 	u.isCheck.Store(true)
-
-	var proxiesList []C.Proxy
-	checkFlag := make(chan bool)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		u.data.lastCheck.Store(time.Now().Unix())
 		u.isCheck.Store(false)
-		close(checkFlag)
+		cancel()
 	}()
 
 	msgInst, _ := u.SendMessage("Converting from API server.")
@@ -47,17 +52,19 @@ func (u *User) streamMedia(subUrl string) error {
 	}
 
 	// animation while waiting test.
-	go u.loading("Checking nodes unlock status", checkFlag, msgInst.MessageID)
+	go u.loading(ctx, "Checking nodes unlock status", msgInst.MessageID)
 
-
+	var proxiesList []C.Proxy
 	for _, v := range proxies {
 		proxiesList = append(proxiesList, v)
 	}
 	// Must have valid node.
 	if len(proxiesList) > 0 {
+		log.Infoln("[ID: %d] Start unlock test", u.ID)
 		start := time.Now()
-		unlockList := utils.BatchCheck(proxiesList, model.BotCfg.MaxConn)
-		checkFlag <- true
+		unlockList := batch(proxiesList, model.BotCfg.MaxConn)
+		cancel()
+
 		report := fmt.Sprintf("Total %d nodes, Duration: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
 
 		var nameList []string
@@ -91,4 +98,62 @@ func (u *User) streamMedia(subUrl string) error {
 		u.DeleteMessage(msgInst.MessageID)
 	}
 	return nil
+}
+
+// batch : n int, to set ConcurrencyNum.
+func batch(proxiesList []C.Proxy, n int) (streamDataList []model.StreamData) {
+	type combineProxy struct {
+		proxy  C.Proxy
+		stream provider.AbsStream
+	}
+
+	var (
+		wg sync.WaitGroup
+		cp []combineProxy
+	)
+
+	streamList := provider.NewStreamList()
+	for i := range proxiesList {
+		for ii := range streamList {
+			cp = append(cp, combineProxy{
+				proxy:  proxiesList[i],
+				stream: streamList[ii],
+			})
+		}
+	}
+	// prefix for node name on log.
+	curr, total := int32(0), len(cp)
+	// initial pool
+	pool, err := ants.NewPoolWithFunc(n, func(i interface{}) {
+		c := i.(combineProxy)
+		result, err := c.stream.IsUnlock(&c.proxy)
+		atomic.AddInt32(&curr, 1)
+		if err != nil {
+			log.Debugln("(%d/%d) %s : %s", atomic.LoadInt32(&curr), total, c.proxy.Name(), err.Error())
+		} else if result.Unlock {
+			log.Debugln("(%d/%d) %s | %s Unlock", atomic.LoadInt32(&curr), total, c.proxy.Name(), result.Name)
+		} else {
+			log.Debugln("(%d/%d) %s | %s None", atomic.LoadInt32(&curr), total, c.proxy.Name(), result.Name)
+		}
+		l.Lock()
+		streamDataList = append(streamDataList, result)
+		l.Unlock()
+		wg.Done()
+	})
+	if err != nil {
+		log.Errorln(err.Error())
+		return
+	}
+	defer pool.Release()
+
+	for i := range cp {
+		wg.Add(1)
+		err = pool.Invoke(cp[i])
+		if err != nil {
+			log.Errorln(err.Error())
+			return
+		}
+	}
+	wg.Wait()
+	return
 }

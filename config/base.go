@@ -22,7 +22,7 @@ func init() {
 	flag.StringVar(&model.ConfPath, "f", "", "specify configuration file")
 	flag.Parse()
 
-	//initial config.yaml
+	// initial config.yaml
 	var buf []byte
 
 	if model.ConfPath != "" {
