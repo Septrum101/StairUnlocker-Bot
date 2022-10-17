@@ -30,6 +30,7 @@ func NewStreamList() []AbsStream {
 		unlockProvider(new(tvb)).create(),
 		unlockProvider(new(abema)).create(),
 		unlockProvider(new(bahamut)).create(),
+		unlockProvider(new(connectivity)).create(),
 	}
 }
 
