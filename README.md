@@ -19,3 +19,24 @@ Usage of StairUnlocker-Bot:
   -h	this help
   -v	show current version of StairUnlock
 ````
+
+### 性能测试
+
+实测601个节点，耗时29.876s
+
+```bash
+StairUnlocker Bot 3.1.0 Bulletin:
+Total 601 nodes, Duration: 29.876s
+<Connectivity>: 476
+Abema: 5
+Bahamut: 2
+Disney Plus: 456
+HBO: 247
+Netflix: 3
+TVB: 0
+Youtube Premium: 393
+Timestamp: 2022-10-17T09:55:18Z
+-------------------------
+@stairunlock_test_bot
+Project: https://git.io/Jyl5l
+```
