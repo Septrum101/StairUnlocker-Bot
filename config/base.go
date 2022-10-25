@@ -1,40 +1,19 @@
 package config
 
 import (
-	"flag"
-	"fmt"
-	"os"
-	"runtime"
-
+	"github.com/Dreamacro/clash/log"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
-
-	C "github.com/Dreamacro/clash/constant"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
 )
 
 func init() {
-	fmt.Printf(fmt.Sprintf("StairUnlock-Bot %s %s %s with %s %s\n", C.Version, runtime.GOOS, runtime.GOARCH, runtime.Version(), C.BuildTime))
-
-	flag.BoolVar(&model.Help, "h", false, "this help")
-	flag.BoolVar(&model.Version, "v", false, "show current version of StairUnlock")
-	flag.StringVar(&model.ConfPath, "f", "", "specify configuration file")
-	flag.Parse()
-
 	// initial config.yaml
-	var buf []byte
-
-	if model.ConfPath != "" {
-		buf, _ = os.ReadFile(model.ConfPath)
-	} else {
-		_, err := os.Stat("config.yaml")
-		if err != nil {
-			b, _ := os.ReadFile("config.example.yaml")
-			os.WriteFile("config.yaml", b, 644)
-		}
-		buf, _ = os.ReadFile("config.yaml")
+	viper.AddConfigPath(".")
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalln("fatal error config file: %w", err)
 	}
-	yaml.Unmarshal(buf, &model.BotCfg)
 }
 
 func UnmarshalRawConfig(buf []byte) (*model.RawConfig, error) {

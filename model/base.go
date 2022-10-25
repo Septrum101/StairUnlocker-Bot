@@ -6,3 +6,7 @@ type StreamData struct {
 	Latency   string
 	Unlock    bool
 }
+
+type RawConfig struct {
+	Proxy []map[string]interface{} `yaml:"proxies"`
+}

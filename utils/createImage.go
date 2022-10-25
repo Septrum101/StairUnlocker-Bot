@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image/png"
 	"sort"
-	"strings"
 	"time"
 
 	C "github.com/Dreamacro/clash/constant"
@@ -53,10 +52,9 @@ func GeneratePNG(streamDataList []model.StreamData, streamMediaNames []string) (
 	dc.Clear()
 	dc.SetRGB(0, 0, 0)
 	dc.SetLineWidth(1)
+
 	// load font.
-	path := strings.Split(model.ConfPath, "/")
-	path[len(path)-1] = "msyh.ttc"
-	err := dc.LoadFontFace(strings.Join(path, "/"), 15)
+	err := dc.LoadFontFace("msyh.ttc", 15)
 	if err != nil {
 		log.Errorln(err.Error())
 		return nil, err

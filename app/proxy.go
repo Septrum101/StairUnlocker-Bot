@@ -9,6 +9,7 @@ import (
 	C "github.com/Dreamacro/clash/constant"
 	"github.com/Dreamacro/clash/log"
 	"github.com/go-resty/resty/v2"
+	"github.com/spf13/viper"
 
 	"github.com/thank243/StairUnlocker-Bot/config"
 	"github.com/thank243/StairUnlocker-Bot/model"
@@ -64,7 +65,7 @@ func convertAPI(subUrl string) ([]byte, error) {
 			"list":        strconv.FormatBool(true),
 			"emoji":       strconv.FormatBool(false),
 			"url":         unescapeUrl,
-		}).R().Get(fmt.Sprintf("%s/sub", model.BotCfg.ConverterAPI))
+		}).R().Get(fmt.Sprintf("%s/sub", viper.GetString("converterAPI")))
 	if err != nil {
 		return nil, err
 	}

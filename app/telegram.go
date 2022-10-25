@@ -7,9 +7,8 @@ import (
 
 	"github.com/Dreamacro/clash/log"
 	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/spf13/viper"
 	"go.uber.org/atomic"
-
-	"github.com/thank243/StairUnlocker-Bot/model"
 )
 
 type Server struct {
@@ -22,11 +21,11 @@ type Server struct {
 }
 
 func NewServer() (*Server, error) {
-	bot, err := tgBot.NewBotAPI(model.BotCfg.TelegramToken)
+	bot, err := tgBot.NewBotAPI(viper.GetString("telegramToken"))
 	if err != nil {
 		return nil, err
 	}
-	if model.BotCfg.LogLevel == 0 {
+	if viper.GetString("log_level") == "debug" {
 		bot.Debug = true
 	}
 	log.Infoln("Authorized on account %s", bot.Self.UserName)

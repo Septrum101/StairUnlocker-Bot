@@ -15,8 +15,8 @@ import (
 	"github.com/go-resty/resty/v2"
 	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/panjf2000/ants/v2"
+	"github.com/spf13/viper"
 
-	"github.com/thank243/StairUnlocker-Bot/model"
 	"github.com/thank243/StairUnlocker-Bot/utils"
 )
 
@@ -60,7 +60,7 @@ func (u *User) realIP(subUrl string) error {
 	if len(proxiesList) > 0 {
 		log.Infoln("[ID: %d] Start real IP test", u.ID)
 		start := time.Now()
-		inbound, outbound := u.getIPList(proxiesList, model.BotCfg.MaxConn)
+		inbound, outbound := u.getIPList(proxiesList, viper.GetInt("maxConn"))
 		cancel()
 
 		duration := time.Since(start).Round(time.Millisecond)

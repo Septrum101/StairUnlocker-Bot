@@ -9,9 +9,8 @@ import (
 
 	"github.com/Dreamacro/clash/log"
 	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/spf13/viper"
 	"go.uber.org/atomic"
-
-	"github.com/thank243/StairUnlocker-Bot/model"
 )
 
 type User struct {
@@ -68,7 +67,7 @@ func (u *User) listenMessage() {
 }
 
 func (u *User) validator() bool {
-	if u.s.runningTask.Load() > int64(model.BotCfg.MaxOnline) {
+	if u.s.runningTask.Load() > viper.GetInt64("maxOnline") {
 		u.SendMessage("Too many connections, Please try again later.")
 		return false
 	}
@@ -87,7 +86,7 @@ func (u *User) validator() bool {
 }
 
 func (u *User) rateLimiting() bool {
-	remainTime := float64(model.BotCfg.Internal) - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
+	remainTime := viper.GetFloat64("internal") - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
 	if remainTime > 0 {
 		if u.countDownMsgID.Load() == 0 {
 			resp, _ := u.SendMessage(fmt.Sprintf("Please try again after %ds.", int(remainTime)))
@@ -95,7 +94,7 @@ func (u *User) rateLimiting() bool {
 			go func() {
 				n := 5 * time.Second
 				for {
-					remainTime = float64(model.BotCfg.Internal) - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
+					remainTime = viper.GetFloat64("internal") - time.Since(time.Unix(u.data.lastCheck.Load(), 0)).Seconds()
 					if remainTime <= 0 {
 						_ = u.DeleteMessage(int(u.countDownMsgID.Load()))
 						u.countDownMsgID.Store(0)

@@ -13,6 +13,7 @@ import (
 	"github.com/Dreamacro/clash/log"
 	tgBot "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/panjf2000/ants/v2"
+	"github.com/spf13/viper"
 
 	"github.com/thank243/StairUnlocker-Bot/model"
 	"github.com/thank243/StairUnlocker-Bot/provider"
@@ -62,7 +63,7 @@ func (u *User) streamMedia(subUrl string) error {
 	if len(proxiesList) > 0 {
 		log.Infoln("[ID: %d] Start unlock test", u.ID)
 		start := time.Now()
-		unlockList := batch(proxiesList, model.BotCfg.MaxConn)
+		unlockList := batch(proxiesList, viper.GetInt("maxConn"))
 		cancel()
 
 		report := fmt.Sprintf("Total %d nodes, Duration: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
