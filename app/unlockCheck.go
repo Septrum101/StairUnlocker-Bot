@@ -48,9 +48,6 @@ func (u *User) streamMedia(subUrl string) error {
 		u.EditMessage(msgInst.MessageID, err.Error())
 		return err
 	}
-	if subUrl != "" {
-		u.data.subURL.Store(subUrl)
-	}
 
 	// animation while waiting test.
 	go u.loading(ctx, "Checking nodes unlock status", msgInst.MessageID)

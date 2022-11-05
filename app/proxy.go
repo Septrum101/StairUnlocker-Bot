@@ -33,12 +33,17 @@ func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err erro
 		err = fmt.Errorf("no nodes were found")
 		return
 	}
+
+	// Cache URL for next check directly
+	u.data.subURL.Store(subUrl)
+
+	// proxiesTest(u)
 	if len(rawConfig.Proxy) > 1024 {
 		log.Errorln("[ID: %d] %s", u.ID, "Too many nodes at the same time, Please reduce nodes less than 1024.")
 		err = fmt.Errorf("too many nodes")
 		return
 	}
-	// proxiesTest(u)
+
 	// compatible clash-core 1.9.0
 	for i := range rawConfig.Proxy {
 		for k := range rawConfig.Proxy[i] {

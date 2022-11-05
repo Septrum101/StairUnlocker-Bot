@@ -45,9 +45,6 @@ func (u *User) realIP(subUrl string) error {
 		u.EditMessage(msgInst.MessageID, err.Error())
 		return err
 	}
-	if subUrl != "" {
-		u.data.subURL.Store(subUrl)
-	}
 
 	// animation while waiting test.
 	go u.loading(ctx, "Retrieving IP information", msgInst.MessageID)
