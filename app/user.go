@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Dreamacro/clash/log"
 	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/spf13/viper"
-	"go.uber.org/atomic"
 )
 
 type User struct {
@@ -21,8 +21,8 @@ type User struct {
 	countDownMsgID atomic.Int64
 	data           struct {
 		lastCheck   atomic.Int64
-		subURL      atomic.String
-		checkedInfo atomic.String
+		subURL      atomic.Value
+		checkedInfo atomic.Value
 	}
 	l sync.RWMutex
 }

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"math"
 	"net/url"
 	"time"
 
@@ -29,20 +28,18 @@ func UrlToMetadata(rawURL string) (addr C.Metadata, err error) {
 	}
 
 	addr = C.Metadata{
-		AddrType: C.AtypDomainName,
-		Host:     u.Hostname(),
-		DstIP:    nil,
-		DstPort:  port,
+		NetWork: C.TCP,
+		Host:    u.Hostname(),
+		DstIP:   nil,
+		DstPort: port,
 	}
 	return
 }
 
 func FormatTime(t time.Duration) string {
-	timeStr := t.Round(time.Second).String()
-	if t-24*time.Hour > 0 {
-		day := int(math.Floor(float64(t / (24 * time.Hour))))
-		timeStr = (t - time.Duration(day*24)*time.Hour).Round(time.Second).String()
-		timeStr = fmt.Sprintf("%dd%s", day, timeStr)
+	d := t / (time.Hour * 24)
+	if d > 0 {
+		return fmt.Sprintf("%d days, %v", d, (t % (time.Hour * 24)).Round(time.Second))
 	}
-	return timeStr
+	return t.Round(time.Second).String()
 }

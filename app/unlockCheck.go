@@ -63,7 +63,7 @@ func (u *User) streamMedia(subUrl string) error {
 	if len(proxiesList) > 0 {
 		log.Infoln("[ID: %d] Start unlock test", u.ID)
 		start := time.Now()
-		unlockList := batch(proxiesList, viper.GetInt("maxConn"))
+		unlockList := u.batch(proxiesList, viper.GetInt("maxConn"))
 		cancel()
 
 		report := fmt.Sprintf("Total %d nodes, Duration: %s", len(proxiesList), time.Since(start).Round(time.Millisecond))
@@ -102,7 +102,7 @@ func (u *User) streamMedia(subUrl string) error {
 }
 
 // batch : n int, to set ConcurrencyNum.
-func batch(proxiesList []C.Proxy, n int) (streamDataList []model.StreamData) {
+func (u *User) batch(proxiesList []C.Proxy, n int) (streamDataList []model.StreamData) {
 	type combineProxy struct {
 		proxy  C.Proxy
 		stream provider.AbsStream
@@ -122,12 +122,21 @@ func batch(proxiesList []C.Proxy, n int) (streamDataList []model.StreamData) {
 			})
 		}
 	}
+
+	streamDataList = make([]model.StreamData, 0, len(streamList)*len(proxiesList))
+
 	// prefix for node name on log.
 	curr, total := int32(0), len(cp)
 	// initial pool
 	pool, err := ants.NewPoolWithFunc(n, func(i interface{}) {
 		c := i.(combineProxy)
 		result, err := c.stream.IsUnlock(&c.proxy)
+
+		rtt, _ := time.ParseDuration(result.Latency)
+		if rtt > 10*time.Second {
+			log.Warnln("slow running: %s %v %s", result.ProxyName, rtt, u.data.subURL.Load())
+		}
+
 		atomic.AddInt32(&curr, 1)
 		if err != nil {
 			log.Debugln("(%d/%d) %s : %s", atomic.LoadInt32(&curr), total, c.proxy.Name(), err.Error())

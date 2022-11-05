@@ -25,7 +25,7 @@ func (u *User) cmdStat() {
 	if u.data.checkedInfo.Load() == "" {
 		u.SendMessage("Cannot find status information. Please use [/url subURL] command once.")
 	} else {
-		u.SendMessage(u.s.userMap[u.ID].data.checkedInfo.Load())
+		u.SendMessage(u.s.userMap[u.ID].data.checkedInfo.Load().(string))
 	}
 }
 
@@ -50,7 +50,7 @@ func (u *User) cmdURL(msg string) error {
 
 	su := subURL.String()
 	if su == "" {
-		su = u.data.subURL.Load()
+		su = u.data.subURL.Load().(string)
 	}
 	u.s.runningTask.Add(1)
 	u.streamMedia(su)
@@ -68,7 +68,7 @@ func (u *User) cmdIP(msg string) error {
 
 	su := subURL.String()
 	if su == "" {
-		su = u.data.subURL.Load()
+		su = u.data.subURL.Load().(string)
 	}
 	u.s.runningTask.Add(1)
 	u.realIP(su)
