@@ -32,7 +32,7 @@ require (
 	golang.org/x/crypto v0.1.1-0.20221024173537-a3485e174077 // indirect
 	golang.org/x/image v0.1.0 // indirect
 	golang.org/x/net v0.1.1-0.20221102181756-a1278a7f7ee0 // indirect
-	golang.org/x/sys v0.1.1-0.20221102194838-fc697a31fa06 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

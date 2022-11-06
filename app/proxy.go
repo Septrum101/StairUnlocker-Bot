@@ -46,17 +46,14 @@ func (u *User) buildProxies(subUrl string) (proxies map[string]C.Proxy, err erro
 
 	// compatible clash-core 1.9.0
 	for i := range rawConfig.Proxy {
-		for k := range rawConfig.Proxy[i] {
-			switch k {
-			case "ws-path":
-				rawConfig.Proxy[i]["ws-opts"] = map[string]interface{}{"path": rawConfig.Proxy[i]["ws-path"]}
-				delete(rawConfig.Proxy[i], "ws-path")
-			case "ws-header":
-				rawConfig.Proxy[i]["ws-opts"] = map[string]interface{}{"ws-header": rawConfig.Proxy[i]["ws-header"]}
-				delete(rawConfig.Proxy[i], "ws-header")
-			}
+		if _, ok := rawConfig.Proxy[i]["ws-path"]; ok {
+			rawConfig.Proxy[i]["ws-opts"] = map[string]any{"path": rawConfig.Proxy[i]["ws-path"]}
+		}
+		if _, ok := rawConfig.Proxy[i]["ws-header"]; ok {
+			rawConfig.Proxy[i]["ws-opts"] = map[string]any{"ws-header": rawConfig.Proxy[i]["ws-header"]}
 		}
 	}
+
 	proxies, err = parseProxies(rawConfig)
 	return
 }
