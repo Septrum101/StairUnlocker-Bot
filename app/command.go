@@ -22,7 +22,7 @@ func (u *User) cmdStart() {
 }
 
 func (u *User) cmdStat() {
-	if u.data.checkedInfo.Load() == "" {
+	if u.data.checkedInfo.Load() == nil {
 		u.SendMessage("Cannot find status information. Please use [/url subURL] command once.")
 	} else {
 		u.SendMessage(u.s.userMap[u.ID].data.checkedInfo.Load().(string))
@@ -43,7 +43,7 @@ func (u *User) cmdVersion() {
 
 func (u *User) cmdURL(msg string) error {
 	subURL, err := url.Parse(strings.TrimSpace(strings.ReplaceAll(msg, "/url", "")))
-	if err != nil || (u.data.subURL.Load() == "" && subURL.String() == "") {
+	if err != nil || (u.data.subURL.Load() == nil && subURL.String() == "") {
 		u.SendMessage("Invalid URL. Please inspect your subURL or use [/url subURL] command once.")
 		return err
 	}
@@ -61,7 +61,7 @@ func (u *User) cmdURL(msg string) error {
 
 func (u *User) cmdIP(msg string) error {
 	subURL, err := url.Parse(strings.TrimSpace(strings.ReplaceAll(msg, "/ip", "")))
-	if err != nil || (u.data.subURL.Load() == "" && subURL.String() == "") {
+	if err != nil || (u.data.subURL.Load() == nil && subURL.String() == "") {
 		u.SendMessage("Invalid URL. Please inspect your subURL or use [/ip subURL] command once.")
 		return err
 	}
