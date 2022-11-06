@@ -9,7 +9,7 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/panjf2000/ants/v2 v2.6.0
-	github.com/spf13/viper v1.13.0
+	github.com/spf13/viper v1.14.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -35,7 +35,7 @@ require (
 	golang.org/x/crypto v0.1.1-0.20221024173537-a3485e174077 // indirect
 	golang.org/x/image v0.1.0 // indirect
 	golang.org/x/net v0.1.1-0.20221102181756-a1278a7f7ee0 // indirect
-	golang.org/x/sys v0.1.1-0.20221102194838-fc697a31fa06 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
