@@ -40,3 +40,7 @@ Timestamp: 2022-10-17T09:55:18Z
 @stairunlock_test_bot
 Project: https://git.io/Jyl5l
 ```
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/thank243/StairUnlocker-Bot.svg)](https://starchart.cc/thank243/StairUnlocker-Bot)
