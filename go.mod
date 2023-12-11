@@ -3,7 +3,7 @@ module github.com/thank243/StairUnlocker-Bot
 go 1.19
 
 require (
-	github.com/Dreamacro/clash v1.16.0
+	github.com/Dreamacro/clash v1.18.0
 	github.com/fogleman/gg v1.3.0
 	github.com/go-resty/resty/v2 v2.10.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
@@ -13,20 +13,21 @@ require (
 )
 
 require (
-	github.com/Dreamacro/protobytes v0.0.0-20230324064118-87bc784139cd // indirect
+	github.com/Dreamacro/protobytes v0.0.0-20230617041236-6500a9f4f158 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gofrs/uuid/v5 v5.0.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/miekg/dns v1.1.54 // indirect
+	github.com/miekg/dns v1.1.55 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/sirupsen/logrus v1.9.2 // indirect
+	github.com/samber/lo v1.38.1 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
