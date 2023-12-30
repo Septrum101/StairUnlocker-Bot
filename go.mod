@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Dreamacro/clash v1.18.0
 	github.com/fogleman/gg v1.3.0
-	github.com/go-resty/resty/v2 v2.10.0
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/panjf2000/ants/v2 v2.9.0
 	github.com/spf13/viper v1.18.2
